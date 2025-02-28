@@ -201,20 +201,27 @@ As shown in the table below, there are four GitHub Actions workflow. Take note o
 
 ## Publish to PyPI
 
-To manually publish your package to PyPI, run `make project/publish`. If necessary, this will build the project as a Python package and upload the generated `*.tar.gz` and `*.whl` files to PyPI.
+To manually publish your package to PyPI, run `make publish`. If necessary, this will build the project as a Python package and upload the generated `*.tar.gz` and `*.whl` files to PyPI.
 
 > [!TIP]
-> Run `make project/publishall` to manually publish the package to PyPI and the documentation site to GitHub Pages.
+> Run `make publish-all` to manually publish the package to PyPI and the documentation site to GitHub Pages.
 
 > [!WARNING]
-> Before trying manually publish your package to PyPI, make sure you have a valid API token. Then, you need manually configure `poetry` running the following command: `poetry config pypi-token.pypi <your-api-token>`.
+> Before trying manually publish your package to PyPI with, make sure you have a valid API token. Then, you need to create a `.env' file formatted as follows:
+> ```
+> UV_PUBLISH_PASSWORD=<your-PyPI-token-here>
+> UV_PUBLISH_USERNAME=__token__
+> ```
+
+> [!TIP]
+> I recommend installing `autoenv` via [homebrew](https://brew.sh) to automatically load the environment variables whenever you cd into the project directory.
 
 ## Documentation
 
-* Run `make docs/build` to build the project documentation using `mkdocs`. The documentation will be generated from your project files' comments in docstring format, thanks to the `mkdocstrings` plugin.
+* Run `make docs-build` to build the project documentation using `mkdocs`. The documentation will be generated from your project files' comments in docstring format, thanks to the `mkdocstrings` plugin.
 The documentation files will be stored in the `DOCS_SITE` directory (by default `site/`).
-* Run `make docs/serve` to browse the built site locally, at http://127.0.0.1:8000/your-github-name/your-project-name/
-* Run `make docs/publish` to publish the documentation site as GitHub pages. The content will be published to a separate branch, named `gh-pages`. Access the documentation online at https://your-github-name.github.io/your-project-name/
+* Run `make docs-serve` to browse the built site locally, at http://127.0.0.1:8000/your-github-name/your-project-name/
+* Run `make docs-publish` to publish the documentation site as GitHub pages. The content will be published to a separate branch, named `gh-pages`. Access the documentation online at https://your-github-name.github.io/your-project-name/
 
 > [!TIP]
 > You can edit the `mkdocs.yml` file to adapt it to your project's specifics. For example, you can change the `material` theme or adjust the logo and colors. Refer to this [guide](https://squidfunk.github.io/mkdocs-material/setup/) for more.
@@ -227,9 +234,9 @@ The documentation files will be stored in the `DOCS_SITE` directory (by default 
 
 ## Docker
 
-* To build the Docker container: `make docker/build`
-* To start the Docker container and run the application: `make docker/run`
-* To build and run: `make docker/all`
+* To build the Docker container: `make docker-build`
+* To start the Docker container and run the application: `make docker-run`
+* To build and run: `make docker-all`
 
 > [!NOTE]
 > Before building the container, you can edit `Makefile.env` and change the name of the image and or container (by default they will match the name of your project).
