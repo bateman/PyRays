@@ -98,7 +98,7 @@ This is a template repository, so first things first, you create a new GitHub re
 4. If any of the needed tools are missing, it will be marked as '*not installed*'. Install them and re-run `make info` to ensure the tools are now correctly installed and in your PATH.
 5. Update the project variables values by editing `pyproject.toml`. In addition, you can add any of the variables in the list below to a `Makefile.env` file to override the default values used in the  `Makefile`. You can check the variables configuration using `make info`.
 
-        PYTHON_VERSION=3.11.1
+        PYTHON_VERSION=3.11.11
         DOCKER_CONTAINER_NAME=pyrays
         DOCKER_IMAGE_NAME=pyrays
 
@@ -107,7 +107,7 @@ This is a template repository, so first things first, you create a new GitHub re
 
 > [!TIP]
 > The installation step will install some 'default' dependencies, such as `rich` and `pretty-errors`, but also dev-dependecies, such as `ruff` and `pytest`.
-> Edit the `pyproject.toml` to add/remove dependencies before running `make project/install`. Otherwise, you can add and remove dependencies later using `poetry add` and `poetry remove` commands.
+> Edit the `pyproject.toml` to add/remove dependencies before running `make install`. Otherwise, you can add and remove dependencies later using `uv add` and `uv remove` commands.
 
 > [!NOTE]
 > The `PROJECT_NAME` var will be converted to lowercase and whitespaces will be replaced by `_`. This value will be the name of your project module.
@@ -132,14 +132,14 @@ The project uses the following development libraries:
 * To run the project: `make run`
 
 > [!TIP]
-> Pass parameters using the ARGS variable (e.g., `make project/run ARGS="--text Ciao --color red"`).
+> Pass parameters using the ARGS variable (e.g., `make run ARGS="--text Ciao --color red"`).
 
 ## Testing
 
 * To run the tests: `make test`
 
 > [!TIP]
-> Pass parameters using the ARGS variable (e.g., `make project/tests ARGS="--cov-report=xml"`).
+> Pass parameters using the ARGS variable (e.g., `make test ARGS="--cov-report=xml"`).
 
 > [!NOTE]
 > Tests are executed using `pytest`. Test coverage is calculated using the plugin `pytest-cov`.
@@ -149,7 +149,7 @@ The project uses the following development libraries:
 
 ## Update
 
-Run `make update` to update all the dependencies using `poetry`.
+Run `make update` to update all the dependencies using `uv`.
 
 ## Build
 
