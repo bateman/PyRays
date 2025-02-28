@@ -42,7 +42,7 @@ Project
   build                 Build the project as a package
   build-all             Build the project package and generate the documentation
   publish               Publish the project to PyPI
-  publishall            Publish the project package to PyPI and the documentation to GitHub Pages
+  publish-all            Publish the project package to PyPI and the documentation to GitHub Pages
   export-deps           Export the project's dependencies to requirements*.txt files
 Check
   format                Format the code
@@ -129,14 +129,14 @@ The project uses the following development libraries:
 
 ## Execution
 
-* To run the project: `make project/run`
+* To run the project: `make run`
 
 > [!TIP]
 > Pass parameters using the ARGS variable (e.g., `make project/run ARGS="--text Ciao --color red"`).
 
 ## Testing
 
-* To run the tests: `make project/tests`
+* To run the tests: `make test`
 
 > [!TIP]
 > Pass parameters using the ARGS variable (e.g., `make project/tests ARGS="--cov-report=xml"`).
@@ -149,15 +149,15 @@ The project uses the following development libraries:
 
 ## Update
 
-Run `make project/update` to update all the dependencies using `poetry`.
+Run `make update` to update all the dependencies using `poetry`.
 
 ## Build
 
-Run `make project/build` to build the project as a Python package.
+Run `make build` to build the project as a Python package.
 The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `dist/`).
 
 > [!TIP]
-> Run `make project/buildall` to build both the project's wheel and tarball, as well as the documentation site.
+> Run `make build-all` to build both the project's wheel and tarball, as well as the documentation site.
 
 ## Release
 
