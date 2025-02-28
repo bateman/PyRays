@@ -1,4 +1,4 @@
-<div align="center"><img src="https://raw.githubusercontent.com/bateman/PyRays/main/images/logo/logo-white.jpg" width="400"></div>
+<div align="center"><img src="https://raw.githubusercontent.com/bateman/PyRays/main/images/logo/logo-white.jpg" width="300"></div>
 
 ![PyPI - Version](https://img.shields.io/pypi/v/PyRays?style=flat-square&color=%23007EC6)
 ![GitHub Release](https://img.shields.io/github/v/release/bateman/PyRays?style=flat-square)
