@@ -1,0 +1,80 @@
+[project]
+name = "pyrays"
+version = "0.1.0"
+description = "\"A GitHub template for Python projects using uv\""
+authors = [
+    {name = "Fabio Calefato", email = "fcalefato@gmail.com"}
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+
+dependencies = [
+    "pretty-errors>=1.2.25",
+    "rich>=13.9.4",
+    "tomlkit>=0.13.2",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.1.0",
+    "ruff>=0.9.7",
+]
+test = [
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+]
+docs = [
+    "markdown-callouts>=0.4.0",
+    "mkdocs>=1.6.1",
+    "mkdocs-autorefs>=1.3.1",
+    "mkdocs-material>=9.6.5",
+    "mkdocstrings>=0.28.1",
+    "mkdocstrings-python>=1.16.1",
+    "pygments>=2.19.1",
+    "pymdown-extensions>=10.14.3",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["pyrays"]
+package-dir = {"pyrays" = "pyrays/src"}
+license-files = []
+
+[tool.uv]
+default-groups = ["dev", "test", "docs"]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.ruff]
+fix = true
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+extend-select = [ "I", "D", "S"]
+ignore = [ "D203", "D211", "D213", "D406", "D407", "D413"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 60
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 88
+
+[tool.pytest.ini_options]
+addopts = [ "--cov-fail-under=5", "--cov-report=term-missing", ]
