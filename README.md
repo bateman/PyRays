@@ -161,7 +161,7 @@ The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `
 
 ## Release
 
-* Run `make release/version ARGS="<semvertag>"` to bump the version of the project and write the new version back to `pyproject.toml`, where `<semvertag>` is one of the following rules: `patch`, `minor`, `major`, `prepatch`, `preminor`, `premajor`, `prerelease`.
+* Run `make release ARGS="<semvertag>"` to bump the version of the project and write the new version back to `pyproject.toml`, where `<semvertag>` is one of the following rules: `patch`, `minor`, `major`, `prepatch`, `preminor`, `premajor`, `prerelease`.
 
   The table below illustrates the effect of these rules with concrete examples.
 
@@ -177,7 +177,13 @@ The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `
   | `prerelease` |   1.0.3a0  |  1.0.3a1  |
   | `prerelease` |   1.0.3b0  |  1.0.3b1  |
 
-* Run `make release/publish` to trigger, respectively, the upload of a new release to GitHub and a Docker image to DockerHub by executing the GitHub Actions `release.yml` and `docker.yml`, as detailed next.
+* Run `make release ARGS="<semvertag>"` to:
+1. Push the tagged version to the origin repository
+2. Trigger two GitHub Actions workflows:
+   - `release.yml`: Creates and uploads a new release to GitHub
+   - `docker.yml`: Builds and pushes a new Docker image to DockerHub
+
+   The specific workflows are detailed in the GitHub Actions section below.
 
 ## GitHub Actions
 
