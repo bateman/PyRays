@@ -223,7 +223,7 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 			$(SED_INPLACE) 's|copyright: MIT License 2024|copyright: $(PROJECT_LICENSE)|g' mkdocs.yml ; \
 			$(SED_INPLACE) 's|site_name: pyrays|site_name: $(PROJECT_NAME)|g' mkdocs.yml ; \
 			$(SED_INPLACE) 's|site_url: https://github.com/bateman/pyrays|site_url: https:\/\/$(GITHUB_USER_NAME)\.github\.io\/$(PROJECT_NAME)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|site_description: A Python Pyenv Poetry template project.|site_description: $(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))|g' mkdocs.yml ; \
+			$(SED_INPLACE) 's|site_description: A GitHub template project with Python + uv.|site_description: $(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))|g' mkdocs.yml ; \
 			$(SED_INPLACE) 's|site_author: Fabio Calefato <fcalefato@gmail.com>|site_author: $(GITHUB_USER_NAME) <$(GITHUB_USER_EMAIL)>|g' mkdocs.yml ; \
 			$(SED_INPLACE) 's|repo_url: https://github.com/bateman/pyrays|repo_url: $(GITHUB_REPO)|g' mkdocs.yml ; \
 			$(SED_INPLACE) 's|repo_name: bateman/pyrays|repo_name: $(GITHUB_USER_NAME)\/$(PROJECT_NAME)|g' mkdocs.yml ; \
@@ -269,7 +269,8 @@ reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-in
 			echo -e "$(YELLOW)Resetting the project...$(RESET)"; \
 			rm -f .python-version > /dev/null || true ; \
 			$(GIT) checkout uv.lock > /dev/null || true ; \
-			$(PYENV) virtualenv-delete -f $(VIRTUALENV_NAME) ; \
+			deactivate ; \
+			rm -rf $(VIRTUALENV_NAME) > /dev/null || true  ; \
 			if [ "$(ARGS)" = "hard" ]; then \
 				rm -f $(PROJECT_INIT) > /dev/null || true ; \
 			fi; \
