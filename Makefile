@@ -243,12 +243,19 @@ $(PRODUCTION_STAMP): $(INSTALL_STAMP)
 	@echo -e "$(GREEN)Project installed for production.$(RESET)"
 
 .PHONY: update
-update: | dep/uv install  ## Update the project
-	@echo -e "$(CYAN)\nUpdating the project...$(RESET)"
-	@$(UV) lock --upgrade
-	@$(UV) sync --all-packages $(ARGS)
-	@$(UV) run pre-commit autoupdate
-	@echo -e "$(GREEN)Project updated.$(RESET)"
+update: | dep/uv install  ## Update all project dependencies
+	@echo -e "$(CYAN)\nUpdating project dependencies...$(RESET)"
+	@if [ -f "$(PRODUCTION_STAMP)" ]; then \
+		echo -e "$(YELLOW)Production environment detected. Updating only core dependencies...$(RESET)"; \
+		$(UV) lock --upgrade; \
+		$(UV) sync --all-packages --upgrade $(ARGS); \
+	else \
+		echo -e "$(CYAN)Development environment detected. Updating all dependencies...$(RESET)"; \
+		$(UV) lock --upgrade; \
+		$(UV) sync --all-packages --upgrade --extra dev --extra test --extra docs $(ARGS); \
+		$(UV) run pre-commit autoupdate; \
+	fi
+	@echo -e "$(GREEN)Dependencies updated.$(RESET)"
 
 .PHONY: clean
 clean:  dep/python  ## Clean the project - removes all cache dirs and stamp files
