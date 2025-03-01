@@ -134,7 +134,7 @@ dep/git:
 	@if [ -z "$(GIT)" ]; then echo -e "$(RED)Git not found.$(RESET)" && exit 1; fi
 
 .PHONY: dep/venv
-dep/venv:
+dep/venv: dep/uv
 	@if [ ! -d "$(VIRTUALENV_NAME)" ]; then \
 		echo -e "$(RED)Virtualenv not found.$(RESET)" && exit 1; \
 	elif [ -z "$$VIRTUAL_ENV" ]; then \
@@ -196,46 +196,43 @@ uv-update: | dep/uv  ## Update uv
 #-- Project
 
 .PHONY: install
-install: dep/uv $(INSTALL_STAMP)  ## Install the project for development
+install: dep/venv $(INSTALL_STAMP)  ## Install the project for development
 $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
-	@if [ ! -f .python-version ]; then \
-		echo -e "$(RED)\nVirtual environment missing. Please run 'make virtualenv' first.$(RESET)"; \
+	@echo -e "$(CYAN)\nInstalling project $(PROJECT_NAME)...$(RESET)"
+	@mkdir -p $(SRC) $(TESTS) $(DOCS) $(BUILD) || true
+	@$(UV) sync --extra dev --extra test
+	@$(UV) lock
+	@$(UV) run pre-commit install
+	@if [ ! -f $(PROJECT_INIT) ] && [ "$(PROJECT_NAME)" != "pyrays" ]; then \
+		echo -e "$(CYAN)Updating project $(PROJECT_NAME) information...$(RESET)"; \
+		$(PYTHON) toml.py --name $(PROJECT_NAME) --ver $(PROJECT_VERSION) --desc $(PROJECT_DESCRIPTION) --repo $(GITHUB_REPO)  --lic $(PROJECT_LICENSE) ; \
+		echo -e "$(CYAN)Creating $(PROJECT_NAME) package module...$(RESET)"; \
+		mv pyrays/* $(SRC)/ ; \
+		rm -rf pyrays ; \
+		echo -e "$(CYAN)Updating files...$(RESET)"; \
+		$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(DOCKER_FILES_TO_UPDATE) ; \
+		$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(PY_FILES_TO_UPDATE) ; \
+		$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(DOCS)/module.md ; \
+		NEW_TEXT="#$(PROJECT_NAME)\n\n$(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))"; \
+		for file in $(DOCS_FILES_TO_RESET); do \
+			echo -e $$NEW_TEXT > $$file; \
+		done; \
+		$(SED_INPLACE) "1s/.*/$$NEW_TEXT/" $(DOCS)/module.md ; \
+		$(SED_INPLACE) 's|copyright: MIT License 2024|copyright: $(PROJECT_LICENSE)|g' mkdocs.yml ; \
+		$(SED_INPLACE) 's|site_name: pyrays|site_name: $(PROJECT_NAME)|g' mkdocs.yml ; \
+		$(SED_INPLACE) 's|site_url: https://github.com/bateman/pyrays|site_url: https:\/\/$(GITHUB_USER_NAME)\.github\.io\/$(PROJECT_NAME)|g' mkdocs.yml ; \
+		$(SED_INPLACE) 's|site_description: A GitHub template project with Python + uv.|site_description: $(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))|g' mkdocs.yml ; \
+		$(SED_INPLACE) 's|site_author: Fabio Calefato <fcalefato@gmail.com>|site_author: $(GITHUB_USER_NAME) <$(AUTHOR_EMAIL)>|g' mkdocs.yml ; \
+		$(SED_INPLACE) 's|repo_url: https://github.com/bateman/pyrays|repo_url: $(GITHUB_REPO)|g' mkdocs.yml ; \
+		$(SED_INPLACE) 's|repo_name: bateman/pyrays|repo_name: $(GITHUB_USER_NAME)\/$(PROJECT_NAME)|g' mkdocs.yml ; \
+		echo -e "$(GREEN)Project $(PROJECT_NAME) initialized.$(RESET)"; \
+		touch $(PROJECT_INIT); \
 	else \
-		echo -e "$(CYAN)\nInstalling project $(PROJECT_NAME)...$(RESET)"; \
-		mkdir -p $(SRC) $(TESTS) $(DOCS) $(BUILD) || true ; \
-		$(UV) sync --dev; \
-		$(UV) lock; \
-		$(UV) run pre-commit install; \
-		if [ ! -f $(PROJECT_INIT) ] && [ "$(PROJECT_NAME)" != "pyrays" ]; then \
-			echo -e "$(CYAN)Updating project $(PROJECT_NAME) information...$(RESET)"; \
-			$(PYTHON) toml.py --name $(PROJECT_NAME) --ver $(PROJECT_VERSION) --desc $(PROJECT_DESCRIPTION) --repo $(GITHUB_REPO)  --lic $(PROJECT_LICENSE) ; \
-			echo -e "$(CYAN)Creating $(PROJECT_NAME) package module...$(RESET)"; \
-			mv pyrays/* $(SRC)/ ; \
-			rm -rf pyrays ; \
-			echo -e "$(CYAN)Updating files...$(RESET)"; \
-			$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(DOCKER_FILES_TO_UPDATE) ; \
-			$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(PY_FILES_TO_UPDATE) ; \
-			$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(DOCS)/module.md ; \
-			NEW_TEXT="#$(PROJECT_NAME)\n\n$(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))"; \
-			for file in $(DOCS_FILES_TO_RESET); do \
-				echo -e $$NEW_TEXT > $$file; \
-			done; \
-			$(SED_INPLACE) "1s/.*/$$NEW_TEXT/" $(DOCS)/module.md ; \
-			$(SED_INPLACE) 's|copyright: MIT License 2024|copyright: $(PROJECT_LICENSE)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|site_name: pyrays|site_name: $(PROJECT_NAME)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|site_url: https://github.com/bateman/pyrays|site_url: https:\/\/$(GITHUB_USER_NAME)\.github\.io\/$(PROJECT_NAME)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|site_description: A GitHub template project with Python + uv.|site_description: $(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|site_author: Fabio Calefato <fcalefato@gmail.com>|site_author: $(GITHUB_USER_NAME) <$(GITHUB_USER_EMAIL)>|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|repo_url: https://github.com/bateman/pyrays|repo_url: $(GITHUB_REPO)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|repo_name: bateman/pyrays|repo_name: $(GITHUB_USER_NAME)\/$(PROJECT_NAME)|g' mkdocs.yml ; \
-			echo -e "$(GREEN)Project $(PROJECT_NAME) initialized.$(RESET)"; \
-			touch $(PROJECT_INIT); \
-		else \
-			echo -e "$(YELLOW)Project $(PROJECT_NAME) already initialized.$(RESET)"; \
-		fi; \
-		echo -e "$(GREEN)Project $(PROJECT_NAME) installed for development.$(RESET)"; \
-		touch $(INSTALL_STAMP); \
+		echo -e "$(YELLOW)Project $(PROJECT_NAME) already initialized.$(RESET)"; \
 	fi
+	@echo -e "$(GREEN)Project $(PROJECT_NAME) installed for development.$(RESET)"
+	@touch $(INSTALL_STAMP)
+
 
 .PHONY: production
 production: dep/uv $(PRODUCTION_STAMP)  ## Install the project for production
