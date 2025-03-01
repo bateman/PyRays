@@ -237,7 +237,8 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 production: dep/uv $(PRODUCTION_STAMP)  ## Install the project for production
 $(PRODUCTION_STAMP): $(INSTALL_STAMP)
 	@echo -e "$(CYAN)\Install project for production...$(RESET)"
-	@$(UV) install --only main --no-interaction $(ARGS)
+	@$(UV) sync
+	@$(UV) lock
 	@touch $(PRODUCTION_STAMP)
 	@echo -e "$(GREEN)Project installed for production.$(RESET)"
 
