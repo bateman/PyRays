@@ -199,7 +199,7 @@ install: dep/venv $(INSTALL_STAMP)  ## Install the project for development
 $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 	@echo -e "$(CYAN)\nInstalling project $(PROJECT_NAME)...$(RESET)"
 	@mkdir -p $(SRC) $(TESTS) $(DOCS) $(BUILD) || true
-	@$(UV) sync --extra dev --extra test
+	@$(UV) sync --extra dev --extra test --extra docs
 	@$(UV) lock
 	@$(UV) run pre-commit install
 	@if [ ! -f $(PROJECT_INIT) ] && [ "$(PROJECT_NAME)" != "pyrays" ]; then \
