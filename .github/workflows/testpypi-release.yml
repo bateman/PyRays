@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           uv venv --python ${{ env.PYTHON_VERSION }}
-          uv pip install -r requirements-dev.txt
+          uv pip install -r requirements.txt
       - name: Build a binary wheel and a source tarball
         run: uv build
       - name: Store the distribution packages
