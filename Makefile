@@ -294,7 +294,7 @@ $(BUILD_STAMP): pyproject.toml Makefile $(PY_FILES)
 	@touch $(BUILD_STAMP)
 
 .PHONY: build-all
-build-all: build docs-build  ## Build the project package and generate the documentation
+build-all: build docker-build docs-build  ## Build the project package and Docker container, generate the documentation
 
 .PHONY: publish
 publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI - use ARGS="<PyPI token>"
