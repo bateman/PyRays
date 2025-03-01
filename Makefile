@@ -170,11 +170,12 @@ python: | dep/uv  ## Check if Python is installed
 		echo -e "$(CYAN)\nPython version $(PYTHON_VERSION) available.$(RESET)"; \
 	fi
 
+# duplication dep/venv
 .PHONY: virtualenv
 virtualenv: | python  ## Check if virtualenv exists and activate it - create it if not
 	@if ! ls $(VIRTUALENV_NAME) > /dev/null ; then \
 		echo -e "$(YELLOW)\nLocal virtualenv not found. Creating it...$(RESET)"; \
-		$(UV) venv || exit 1; \
+		$(UV) venv --python $(PYTHON_VERSION) || exit 1; \
 		echo -e "$(GREEN)Virtualenv created and activated.$(RESET)"; \
 	else \
 		echo -e "$(CYAN)\nVirtualenv already created.$(RESET)"; \
@@ -329,8 +330,9 @@ publishall: publish docs-publish  ## Publish the project package to PyPI and the
 export-deps: dep/uv $(DEPS_EXPORT_STAMP)  ## Export the project's dependencies to requirements*.txt files
 $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 	@echo -e "$(CYAN)\nExporting the project dependencies...$(RESET)"
-	@$(UV) export --format requirements-txt -o requirements.txt --no-dev
-	@$(UV) export --format requirements-txt -o requirements-dev.txt --only-dev
+	@$(UV) pip compile pyproject.toml -o requirements.txt
+	@$(UV) pip compile pyproject.toml -o requirements-dev.txt --extra test --extra dev
+	@$(UV) pip compile pyproject.toml -o requirements-docs.txt --extra docs
 	@echo -e "$(GREEN)Dependencies exported.$(RESET)"
 	@touch $(DEPS_EXPORT_STAMP)
 
