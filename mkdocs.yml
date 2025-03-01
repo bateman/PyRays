@@ -1,0 +1,71 @@
+# Project information
+site_name: PyRays
+site_url: https://github.com/bateman/PyRays
+site_description: A Python + UV template project.
+site_author: bateman <fcalefato@gmail.com>
+
+# Repository
+repo_url: https://github.com/bateman/PyRays
+repo_name: bateman/PyRays
+edit_uri: "" #disables edit button
+
+# Copyright
+copyright: MIT License 2025
+
+# Configuration
+theme:
+  name: material
+  language: en
+  logo: images/logo.png
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - github-callouts
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: false
+
+nav:
+  - Home: index.md
+  - Documentation:
+    - Module: module.md
+    - Configuration: config.md
+    - Logging: logging.md
+  - Info:
+    - About: about.md
+    - License: license.md
