@@ -285,7 +285,7 @@ test: dep/uv $(INSTALL_STAMP)  ## Run the tests
 
 .PHONY: build
 build: dep/uv $(BUILD_STAMP)  ## Build the project as a package
-$(BUILD_STAMP): pyproject.toml
+$(BUILD_STAMP): pyproject.toml Makefile
 	@echo -e "$(CYAN)\nBuilding the project...$(RESET)"
 	@rm -rf $(BUILD)
 	@$(UV) build $(ARGS)
@@ -297,10 +297,13 @@ build-all: build docs-build  ## Build the project package and generate the docum
 
 .PHONY: publish
 publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI - use ARGS="<PyPI token>"
-	@if [ -z "$(ARGS)" ]; then \
-		echo -e "$(RED)Missing PyPI token.$(RESET)"; \
-		echo -e "$(RED)\nUsage: make publish ARGS=\"<PyPI token>\"$(RESET)"; \
-		exit 1; \
+	## if no .env file is found, check ARGS
+	@if [ ! -f .env ]; then \
+		if [ -z "$(ARGS)" ]; then \
+			echo -e "$(RED)Missing PyPI token.$(RESET)"; \
+			echo -e "$(RED)\nUsage: make publish ARGS=\"<PyPI token>\"$(RESET)"; \
+			exit 1; \
+		fi; \
 	fi
 	@echo -e "$(CYAN)\nPublishing the project to PyPI...$(RESET)"
 	@export UV_PUBLISH_USERNAME=__token__
