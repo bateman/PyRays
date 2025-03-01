@@ -399,7 +399,8 @@ tag: | version staging  ## Tag a new release version - use ARGS="..." to specify
                         print major,minor,patch \
                     }')) \
 				$(SED_INPLACE) 's/^version = ".*"/version = "$(NEW_VERSION)"/' pyproject.toml; \
-				$(GIT) add pyproject.toml; \
+				$(UV) lock; \
+				$(GIT) add pyproject.toml uv.lock; \
 				$(GIT) commit -m "Bump version from $(CURRENT_VERSION) to $(NEW_VERSION)"; \
 				echo -e "$(CYAN)\nTagging new version... [$(CURRENT_VERSION)->$(NEW_VERSION)]$(RESET)"; \
 				$(GIT) tag -a v$(NEW_VERSION) -m "Release version $(NEW_VERSION)"; \
