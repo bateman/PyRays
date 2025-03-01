@@ -308,7 +308,7 @@ publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI - use ARGS="<PyPI
 	@echo -e "$(CYAN)\nPublishing the project to PyPI...$(RESET)"
 	@export UV_PUBLISH_USERNAME=__token__
 	@export UV_PUBLISH_PASSWORD=$(ARGS)
-	$(UV) publish dist/*
+	$(UV) publish $(BUILD)/*
 	@if [ $$? -eq 0 ]; then \
 		echo -e "$(GREEN)Project published.$(RESET)"; \
 	else \
