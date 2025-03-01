@@ -61,6 +61,7 @@ DOCS := docs
 DOCS_SITE := site
 CACHE_DIRS := $(wildcard .*_cache)
 COVERAGE := .coverage $(wildcard coverage.*)
+EGG_INFO := $(PROJECT_NAME).egg-info
 
 # Files
 PY_FILES := $(shell find $(SRC) -type f -name '*.py')
@@ -254,7 +255,7 @@ update: | dep/uv install  ## Update the project
 clean:  dep/python  ## Clean the project - removes all cache dirs and stamp files
 	@echo -e "$(YELLOW)\nCleaning the project...$(RESET)"
 	@find . -type d -name "__pycache__" | xargs rm -rf {};
-	@rm -rf $(STAMP_FILES) $(CACHE_DIRS) $(BUILD) $(DOCS_SITE) $(COVERAGE) || true
+	@rm -rf $(STAMP_FILES) $(CACHE_DIRS) $(BUILD) $(EGG_INFO) $(DOCS_SITE) $(COVERAGE) || true
 	@echo -e "$(GREEN)Project cleaned.$(RESET)"
 
 .PHONY: reset
