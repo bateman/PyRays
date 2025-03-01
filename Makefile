@@ -63,7 +63,8 @@ CACHE_DIRS := $(wildcard .*_cache)
 COVERAGE := .coverage $(wildcard coverage.*)
 
 # Files
-PY_FILES := $(shell find . -type f -name '*.py')
+PY_FILES := $(shell find $(SRC) -type f -name '*.py')
+TEST_FILES := $(shell find $(TESTS) -type f -name '*.py')
 DOCS_FILES := $(shell find $(DOCS) -type f -name '*.md') README.md
 PROJECT_INIT := .project-init
 DOCKER_FILES_TO_UPDATE := $(DOCKER_FILE) $(DOCKER_COMPOSE_FILE) entrypoint.sh
@@ -337,13 +338,13 @@ $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 .PHONY: format
 format: $(INSTALL_STAMP)  ## Format the code
 	@echo -e "$(CYAN)\nFormatting the code...$(RESET)"
-	@ruff format $(PY_FILES)
+	@ruff format $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code formatted.$(RESET)"
 
 .PHONY: lint
 lint: $(INSTALL_STAMP)  ## Lint the code
 	@echo -e "$(CYAN)\nLinting the code...$(RESET)"
-	@ruff check $(PY_FILES)
+	@ruff check $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code linted.$(RESET)"
 
 .PHONY: precommit
