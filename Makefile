@@ -24,16 +24,16 @@ DOCKER_COMPOSE_VERSION := $(shell if [ -n "$(DOCKER_COMPOSE)" ]; then $(DOCKER_C
 # Project variables -- change as needed before running make install
 # override the defaults by setting the variables in a Makefile.env file
 -include Makefile.env
-PROJECT_NAME ?= $(shell $(GREP) 'name' pyproject.toml | $(SED) 's/name = //')
+PROJECT_NAME ?= $(shell $(GREP) '^name = ' pyproject.toml | $(SED) 's/name = "\(.*\)"/\1/')
 # make sure the project name is lowercase and has no spaces
 PROJECT_NAME := $(shell echo $(PROJECT_NAME) | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
-AUTHOR_NAME ?= $(shell $(AWK) -F'["<]' '/authors/ {sub(/[ \t]+$$/, "", $$2); print $$2}' pyproject.toml || $(GIT) config --get user.name)
-GITHUB_REPO ?= $(shell $(GREP) 'repository' pyproject.toml | $(SED) 's/repository = //' || url=$$($(GIT) config --get remote.origin.url); echo $${url%.git})
-GITHUB_USER_NAME ?= $(shell echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}')
-GITHUB_USER_EMAIL ?= $(shell $(AWK) -F'[<>]' '/authors/ {print $$2}' pyproject.toml || $(GIT) config --get user.email || echo '')
+AUTHOR_NAME ?= $(shell $(GREP) 'name.*email' pyproject.toml | $(SED) -E 's/.*name = "([^"]+)".*/\1/' || $(GIT) config --get user.name)
+AUTHOR_EMAIL ?= $(shell $(GREP) 'email' pyproject.toml | $(SED) -E 's/.*email = "([^"]+)".*/\1/' || $(GIT) config --get user.email)
+GITHUB_REPO ?= $(shell url=$$($(GIT) config --get remote.origin.url); echo $${url%.git})
+GITHUB_USER_NAME ?= $(shell echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}' || echo "")
 PROJECT_VERSION ?= $(shell $(UV) version -s 2>/dev/null || echo 0.1.0)
 PROJECT_DESCRIPTION ?= '$(shell $(GREP) 'description' pyproject.toml | $(SED) 's/description = //')'
-PROJECT_LICENSE ?= $(shell $(GREP) 'license' pyproject.toml | $(SED) 's/license = //')
+PROJECT_LICENSE ?= $(shell $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | sed -E 's/.*"([^"]+)".*/\1/')
 PYTHON_VERSION ?= 3.11.11
 VIRTUALENV_NAME ?= .venv
 PRECOMMIT_CONF ?= .pre-commit-config.yaml
@@ -103,15 +103,15 @@ info:  ## Show development environment info
 	@echo -e "$(MAGENTA)Project:$(RESET)"
 	@echo -e "  $(CYAN)Project name:$(RESET) $(PROJECT_NAME)"
 	@echo -e "  $(CYAN)Project description:$(RESET) $(PROJECT_DESCRIPTION)"
-	@echo -e "  $(CYAN)Project author:$(RESET) $(AUTHOR_NAME) ($(GITHUB_USER_NAME) <$(GITHUB_USER_EMAIL)>)"
+	@echo -e "  $(CYAN)Project author:$(RESET) $(AUTHOR_NAME) ($(GITHUB_USER_NAME) <$(AUTHOR_EMAIL)>)"
 	@echo -e "  $(CYAN)Project version:$(RESET) $(PROJECT_VERSION)"
 	@echo -e "  $(CYAN)Project license:$(RESET) $(PROJECT_LICENSE)"
 	@echo -e "  $(CYAN)Project repository:$(RESET) $(GITHUB_REPO)"
 	@echo -e "  $(CYAN)Project directory:$(RESET) $(CURDIR)"
 	@echo -e "$(MAGENTA)Python:$(RESET)"
 	@echo -e "  $(CYAN)Python version:$(RESET) $(PYTHON_VERSION)"
-	@echo -e "  $(CYAN)uv version:$(RESET) $(shell $(UV) --version || echo "$(RED)not installed $(RESET)")"
 	@echo -e "  $(CYAN)Virtualenv name:$(RESET) $(VIRTUALENV_NAME)"
+	@echo -e "  $(CYAN)uv version:$(RESET) $(shell $(UV) --version || echo "$(RED)not installed $(RESET)")"
 	@echo -e "$(MAGENTA)Docker:$(RESET)"
 	@if [ -n "$(DOCKER_VERSION)" ]; then \
 		echo -e "  $(CYAN)Docker:$(RESET) $(DOCKER_VERSION)"; \
@@ -134,7 +134,11 @@ dep/git:
 
 .PHONY: dep/venv
 dep/venv:
-	@if [ -z "$(PYENV)" ]; then echo -e "$(RED)Virtualenv not found.$(RESET)" && exit 1; fi
+	@if [ ! -d "$(VIRTUALENV_NAME)" ]; then \
+		echo -e "$(RED)Virtualenv not found.$(RESET)" && exit 1; \
+	elif [ -z "$$VIRTUAL_ENV" ]; then \
+		echo -e "$(RED)Virtualenv exists but is not activated.$(RESET)" && exit 1; \
+	fi
 
 .PHONY: dep/python
 dep/python:
@@ -198,30 +202,30 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 		echo -e "$(CYAN)\nInstalling project $(PROJECT_NAME)...$(RESET)"; \
 		mkdir -p $(SRC) $(TESTS) $(DOCS) $(BUILD) || true ; \
 		$(UV) sync --dev; \
-		$(UV) lock --no-update; \
+		$(UV) lock; \
 		$(UV) run pre-commit install; \
-		if [ ! -f $(PROJECT_INIT) ] && [ "$(PROJECT_NAME)" != "python_pyenv_uv_template" ]; then \
+		if [ ! -f $(PROJECT_INIT) ] && [ "$(PROJECT_NAME)" != "pyrays" ]; then \
 			echo -e "$(CYAN)Updating project $(PROJECT_NAME) information...$(RESET)"; \
 			$(PYTHON) toml.py --name $(PROJECT_NAME) --ver $(PROJECT_VERSION) --desc $(PROJECT_DESCRIPTION) --repo $(GITHUB_REPO)  --lic $(PROJECT_LICENSE) ; \
 			echo -e "$(CYAN)Creating $(PROJECT_NAME) package module...$(RESET)"; \
-			mv python_pyenv_uv_template/* $(SRC)/ ; \
-			rm -rf python_pyenv_uv_template ; \
+			mv pyrays/* $(SRC)/ ; \
+			rm -rf pyrays ; \
 			echo -e "$(CYAN)Updating files...$(RESET)"; \
-			$(SED_INPLACE) "s/python_pyenv_uv_template/$(PROJECT_NAME)/g" $(DOCKER_FILES_TO_UPDATE) ; \
-			$(SED_INPLACE) "s/python_pyenv_uv_template/$(PROJECT_NAME)/g" $(PY_FILES_TO_UPDATE) ; \
-			$(SED_INPLACE) "s/python_pyenv_uv_template/$(PROJECT_NAME)/g" $(DOCS)/module.md ; \
+			$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(DOCKER_FILES_TO_UPDATE) ; \
+			$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(PY_FILES_TO_UPDATE) ; \
+			$(SED_INPLACE) "s/pyrays/$(PROJECT_NAME)/g" $(DOCS)/module.md ; \
 			NEW_TEXT="#$(PROJECT_NAME)\n\n$(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))"; \
 			for file in $(DOCS_FILES_TO_RESET); do \
 				echo -e $$NEW_TEXT > $$file; \
 			done; \
 			$(SED_INPLACE) "1s/.*/$$NEW_TEXT/" $(DOCS)/module.md ; \
 			$(SED_INPLACE) 's|copyright: MIT License 2024|copyright: $(PROJECT_LICENSE)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|site_name: python_pyenv_uv_template|site_name: $(PROJECT_NAME)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|site_url: https://github.com/bateman/python_pyenv_uv_template|site_url: https:\/\/$(GITHUB_USER_NAME)\.github\.io\/$(PROJECT_NAME)|g' mkdocs.yml ; \
+			$(SED_INPLACE) 's|site_name: pyrays|site_name: $(PROJECT_NAME)|g' mkdocs.yml ; \
+			$(SED_INPLACE) 's|site_url: https://github.com/bateman/pyrays|site_url: https:\/\/$(GITHUB_USER_NAME)\.github\.io\/$(PROJECT_NAME)|g' mkdocs.yml ; \
 			$(SED_INPLACE) 's|site_description: A Python Pyenv Poetry template project.|site_description: $(subst ",,$(subst ',,$(PROJECT_DESCRIPTION)))|g' mkdocs.yml ; \
 			$(SED_INPLACE) 's|site_author: Fabio Calefato <fcalefato@gmail.com>|site_author: $(GITHUB_USER_NAME) <$(GITHUB_USER_EMAIL)>|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|repo_url: https://github.com/bateman/python_pyenv_uv_template|repo_url: $(GITHUB_REPO)|g' mkdocs.yml ; \
-			$(SED_INPLACE) 's|repo_name: bateman/python_pyenv_uv_template|repo_name: $(GITHUB_USER_NAME)\/$(PROJECT_NAME)|g' mkdocs.yml ; \
+			$(SED_INPLACE) 's|repo_url: https://github.com/bateman/pyrays|repo_url: $(GITHUB_REPO)|g' mkdocs.yml ; \
+			$(SED_INPLACE) 's|repo_name: bateman/pyrays|repo_name: $(GITHUB_USER_NAME)\/$(PROJECT_NAME)|g' mkdocs.yml ; \
 			echo -e "$(GREEN)Project $(PROJECT_NAME) initialized.$(RESET)"; \
 			touch $(PROJECT_INIT); \
 		else \
@@ -248,7 +252,7 @@ update: | dep/uv install  ## Update the project
 	@echo -e "$(GREEN)Project updated.$(RESET)"
 
 .PHONY: clean
-clean:  ## Clean the project - removes all cache dirs and stamp files
+clean:  dep/python  ## Clean the project - removes all cache dirs and stamp files
 	@echo -e "$(YELLOW)\nCleaning the project...$(RESET)"
 	@find . -type d -name "__pycache__" | xargs rm -rf {};
 	@rm -rf $(STAMP_FILES) $(CACHE_DIRS) $(BUILD) $(DOCS_SITE) $(COVERAGE) || true
@@ -276,7 +280,7 @@ reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-in
 
 .PHONY: run
 run: dep/python $(INSTALL_STAMP)  ## Run the project
-	@$(PYTHON) -m $(SRC) $(ARGS)
+	@$(UV) run python -m $(PROJECT_NAME) $(ARGS)
 
 .PHONY: test
 test: dep/uv $(INSTALL_STAMP)  ## Run the tests
@@ -285,7 +289,7 @@ test: dep/uv $(INSTALL_STAMP)  ## Run the tests
 
 .PHONY: build
 build: dep/uv $(BUILD_STAMP)  ## Build the project as a package
-$(BUILD_STAMP): pyproject.toml Makefile
+$(BUILD_STAMP): pyproject.toml Makefile $(PY_FILES)
 	@echo -e "$(CYAN)\nBuilding the project...$(RESET)"
 	@rm -rf $(BUILD)
 	@$(UV) build $(ARGS)
