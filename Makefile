@@ -387,20 +387,30 @@ tag: | version staging  ## Tag a new release version - use ARGS="..." to specify
 		case "$(ARGS)" in \
 			"patch"|"minor"|"major"|"prepatch"|"preminor"|"premajor"|"prerelease"|"--next-phase") \
 				echo -e "$(CYAN)\nCreating a new version...$(RESET)"; \
+				$(eval CURRENT_VERSION := $(shell grep -m1 'version = "[^"]*"' pyproject.toml | sed 's/.*version = "\([^"]*\)".*/\1/')) \
+                $(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | awk -F. \
+                    -v OFS=. \
+                    -v action="$(ARGS)" \
+                    '{ \
+                        major=$$1; minor=$$2; patch=$$3; \
+                        if (action=="major") {major++; minor=0; patch=0} \
+                        else if (action=="minor") {minor++; patch=0} \
+                        else if (action=="patch") {patch++} \
+                        print major,minor,patch \
+                    }')) \
+				$(SED_INPLACE) 's/^version = ".*"/version = "$(NEW_VERSION)"/' pyproject.toml; \
+				$(GIT) add pyproject.toml; \
+				$(GIT) commit -m "Bump version from $(CURRENT_VERSION) to $(NEW_VERSION)"; \
+				echo -e "$(CYAN)\nTagging new version... [$(CURRENT_VERSION)->$(NEW_VERSION)]$(RESET)"; \
+				$(GIT) tag -a v$(NEW_VERSION) -m "Release version $(NEW_VERSION)"; \
+				echo -e "$(GREEN)New version tagged.$(RESET)"; \
 				;; \
 			*) \
 				echo -e "$(RED)Invalid version argument.$(RESET)"; \
-				echo -e "$(RED)\nUsage: make release/version ARGS=\"patch|minor|major|prepatch|preminor|premajor|prerelease|--next-phase\"$(RESET)"; \
+				echo -e "$(RED)\nUsage: make tag ARGS=\"patch|minor|major|prepatch|preminor|premajor|prerelease|--next-phase\"$(RESET)"; \
 				exit 1; \
 				;; \
 		esac; \
-		$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0)) \
-		$(eval NEW_TAG := $(shell $(UV) version $(ARGS) > /dev/null && $(UV) version -s)) \
-		$(GIT) add pyproject.toml; \
-		$(GIT) commit -m "Bump version to $(NEW_TAG)"; \
-		echo -e "$(CYAN)\nTagging a new patch version... [$(TAG)->$(NEW_TAG)]$(RESET)"; \
-		$(GIT) tag $(NEW_TAG); \
-		echo -e "$(GREEN)New patch version tagged.$(RESET)"; \
 	else \
 		echo -e "$(YELLOW)\nNo new release needed.$(RESET)"; \
 	fi
