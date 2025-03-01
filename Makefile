@@ -138,9 +138,9 @@ dep/git:
 dep/venv: dep/uv
 	@if [ ! -d "$(VIRTUALENV_NAME)" ]; then \
 		echo -e "$(RED)Virtualenv not found.$(RESET)" && exit 1; \
-	elif [ -z "$$VIRTUAL_ENV" ]; then \
-		echo -e "$(RED)Virtualenv exists but is not activated.$(RESET)" && exit 1; \
-	fi
+    elif [ ! "$$(which python)" = "$$PWD/$(VIRTUALENV_NAME)/bin/python" ]; then \
+        echo -e "$(RED)Virtualenv exists but is not activated.$(RESET)" && exit 1; \
+    fi
 
 .PHONY: dep/python
 dep/python:
@@ -163,10 +163,8 @@ dep/docker-compose:
 .PHONY: python
 python: | dep/uv  ## Check if Python is installed
 	@if ! $(PYTHON) --version | grep $(PYTHON_VERSION) > /dev/null ; then \
-		echo -e "$(RED)Python version $(PYTHON_VERSION) not installed.$(RESET)"; \
-		echo -e "$(RED)To install it, run '$(UV) python install $(PYTHON_VERSION)'.$(RESET)"; \
-		echo -e "$(RED)Then, re-run 'make virtualenv'.$(RESET)"; \
-		exit 1 ; \
+		echo -e "$(YELLOW)Python version $(PYTHON_VERSION) not installed, installing it...$(RESET)"; \
+		$(UV) python install $(PYTHON_VERSION) || exit 1; \
 	else \
 		echo -e "$(CYAN)\nPython version $(PYTHON_VERSION) available.$(RESET)"; \
 	fi
@@ -177,7 +175,7 @@ virtualenv: | python  ## Check if virtualenv exists and activate it - create it 
 	@if ! ls $(VIRTUALENV_NAME) > /dev/null ; then \
 		echo -e "$(YELLOW)\nLocal virtualenv not found. Creating it...$(RESET)"; \
 		$(UV) venv --python $(PYTHON_VERSION) || exit 1; \
-		echo -e "$(GREEN)Virtualenv created and activated.$(RESET)"; \
+		echo -e "$(GREEN)Virtualenv created.$(RESET)"; \
 	else \
 		echo -e "$(CYAN)\nVirtualenv already created.$(RESET)"; \
 	fi
@@ -237,7 +235,7 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 
 .PHONY: production
 production: dep/uv $(PRODUCTION_STAMP)  ## Install the project for production
-$(PRODUCTION_STAMP): $(INSTALL_STAMP) $(UPDATE_STAMP)
+$(PRODUCTION_STAMP): $(INSTALL_STAMP)
 	@echo -e "$(CYAN)\Install project for production...$(RESET)"
 	@$(UV) install --only main --no-interaction $(ARGS)
 	@touch $(PRODUCTION_STAMP)
@@ -266,9 +264,7 @@ reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-in
 		[Yy]* ) \
 			$(MAKE) clean; \
 			echo -e "$(YELLOW)Resetting the project...$(RESET)"; \
-			rm -f .python-version > /dev/null || true ; \
 			$(GIT) checkout uv.lock > /dev/null || true ; \
-			deactivate ; \
 			rm -rf $(VIRTUALENV_NAME) > /dev/null || true  ; \
 			if [ "$(ARGS)" = "hard" ]; then \
 				rm -f $(PROJECT_INIT) > /dev/null || true ; \
