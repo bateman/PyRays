@@ -354,9 +354,17 @@ precommit: $(INSTALL_STAMP) $(PRECOMMIT_CONF)  ## Run all pre-commit checks
 
 .PHONY: version
 version: | dep/git
-	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0))
-	@$(eval BEHIND_AHEAD := $(shell $(GIT) rev-list --left-right --count $(TAG)...origin/main))
-	@$(shell if [ "$(BEHIND_AHEAD)" = "0	0" ]; then echo "false" > $(RELEASE_STAMP); else echo "true" > $(RELEASE_STAMP); fi)
+	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null || echo "0.0.0"))
+	@$(eval BEHIND_AHEAD := $(shell if [ "$(TAG)" = "0.0.0" ]; then \
+		echo "0	1"; \
+	else \
+		$(GIT) rev-list --left-right --count $(TAG)...origin/main; \
+	fi))
+	@$(shell if [ "$(TAG)" = "0.0.0" ] || [ "$(BEHIND_AHEAD)" != "0	0" ]; then \
+		echo "true" > $(RELEASE_STAMP); \
+	else \
+		echo "false" > $(RELEASE_STAMP); \
+	fi)
 	@echo -e "$(CYAN)\nChecking if a new release is needed...$(RESET)"
 	@echo -e "  $(CYAN)Current tag:$(RESET) $(TAG)"
 	@echo -e "  $(CYAN)Commits behind/ahead:$(RESET) $(shell echo ${BEHIND_AHEAD} | tr '[:space:]' '/' | $(SED) 's/\/$$//')"
