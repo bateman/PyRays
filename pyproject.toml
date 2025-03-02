@@ -1,5 +1,5 @@
 [project]
-name = "pyrays"
+name = "PyRays"
 version = "0.1.5"
 description = "A GitHub template for Python projects using uv"
 authors = [
