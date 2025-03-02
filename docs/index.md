@@ -34,22 +34,22 @@ System
 Project
   install               Install the project for development
   production            Install the project for production
-  update                Update the project
+  update                Update all project dependencies
   clean                 Clean the project - removes all cache dirs and stamp files
   reset                 Cleans plus removes the virtual environment (use ARGS="hard" to re-initialize the project)
   run                   Run the project
   test                  Run the tests
   build                 Build the project as a package
-  build-all             Build the project package and generate the documentation
-  publish               Publish the project to PyPI
-  publish-all            Publish the project package to PyPI and the documentation to GitHub Pages
+  build-all             Build the project package and Docker container, generate the documentation
+  publish               Publish the project to PyPI (use ARGS="<PyPI token>")
+  publishall            Publish the project package to PyPI and the documentation to GitHub Pages
   export-deps           Export the project's dependencies to requirements*.txt files
 Check
   format                Format the code
   lint                  Lint the code
   precommit             Run all pre-commit checks
 Release
-  tag                   Tag a new release version - use ARGS="..." to specify the version
+  tag                   Tag a new release version (use ARGS="..." to specify the version)
   release               Push the tagged version to origin - triggers the release and docker actions
 Docker
   docker-build          Build the Docker image
@@ -65,7 +65,7 @@ Documentation
 
 ## Installation
 
-This is a template repository, so first things first, you create a new GitHub repository and choose this as its template. After that, follow the installation steps below.
+This is a template repository, so first, create a new GitHub repository and choose this as its template. Then, follow the installation steps below.
 
 1. Clone the repository: `git clone https://github.com/<your-github-name>/<your-project-name>.git `
 2. Navigate to the project directory: `cd <your-project-name>`
@@ -80,7 +80,7 @@ This is a template repository, so first things first, you create a new GitHub re
           Git: git version 2.39.5 (Apple Git-154)
         Project:
           Project name: pyrays
-          Project description: '"A GitHub template for Python projects using uv"'
+          Project description: 'A GitHub template for Python projects using uv'
           Project author: Fabio Calefato (bateman <fcalefato@gmail.com>)
           Project version: 0.1.0
           Project license: MIT
@@ -88,15 +88,16 @@ This is a template repository, so first things first, you create a new GitHub re
           Project directory: /Users/fabio/Dev/git/PyRays
         Python:
           Python version: 3.11.11
-          uv version: uv 0.6.2 (6d3614eec 2025-02-19)
           Virtualenv name: .venv
+          uv version: uv 0.6.2 (6d3614eec 2025-02-19)
         Docker:
           Docker: Docker version 27.5.1, build 9f9e405
           Docker Compose: Docker Compose version v2.32.4-desktop.1
           Docker image name: pyrays
+          Docker container name: pyrays
 
-4. If any of the needed tools are missing, it will be marked as '*not installed*'. Install them and re-run `make info` to ensure the tools are now correctly installed and in your PATH.
-5. Update the project variables values by editing `pyproject.toml`. In addition, you can add any of the variables in the list below to a `Makefile.env` file to override the default values used in the  `Makefile`. You can check the variables configuration using `make info`.
+4. If any needed tools are missing, they will be marked as '*not installed*'. Install them and re-run `make info` to ensure the tools are now correctly installed and in your PATH.
+5. Update the project variables values by editing `pyproject.toml`. In addition, you can add any of the variables in the list below to a `Makefile.env` file to override the default values used in the  `Makefile`. You can check the configuration of each variable using `make info`.
 
         PYTHON_VERSION=3.11.11
         DOCKER_CONTAINER_NAME=pyrays
@@ -110,7 +111,7 @@ This is a template repository, so first things first, you create a new GitHub re
 > Edit the `pyproject.toml` to add/remove dependencies before running `make install`. Otherwise, you can add and remove dependencies later using `uv add` and `uv remove` commands.
 
 > [!NOTE]
-> The `PROJECT_NAME` var will be converted to lowercase and whitespaces will be replaced by `_`. This value will be the name of your project module.
+> The `name` field in `pyproject.toml` will be converted to lowercase and whitespaces will be replaced by `_`. This value will be the name of your project module.
 
 > [!CAUTION]
 > The `Makefile.env` should specify at least the `PYTHON_VERSION=...`. Otherwise, the GitHub Actions will fail. Also, make sure that the Python version specified in `Makefile.env` (e.g., 3.12.1) satisfies the requirements in `pyproject.toml` file (e.g., python = "^3.12").
@@ -187,7 +188,7 @@ The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `
 
 ## GitHub Actions
 
-As shown in the table below, there are four GitHub Actions workflow. Take note on the event triggering the run and the Secrets needed for a succesfull execution.
+As shown in the table below, there are four GitHub Actions workflow. Take note on the event triggering the run and the Secrets needed for a successful execution.
 
 | **Action name** | **Purpose**                                 | **Runs on**                                            | **Secrets**                             |
 |:---------------:|---------------------------------------------|--------------------------------------------------------|-----------------------------------------|
@@ -207,7 +208,7 @@ To manually publish your package to PyPI, run `make publish`. If necessary, this
 > Run `make publish-all` to manually publish the package to PyPI and the documentation site to GitHub Pages.
 
 > [!WARNING]
-> Before trying manually publish your package to PyPI with, make sure you have a valid API token. Then, you need to create a `.env' file formatted as follows:
+> Before trying to manually publish your package to PyPI, make sure you have a valid API token. Then, you need to create a `.env' file formatted as follows:
 > ```
 > UV_PUBLISH_PASSWORD=<your-PyPI-token-here>
 > UV_PUBLISH_USERNAME=__token__
@@ -230,7 +231,7 @@ The documentation files will be stored in the `DOCS_SITE` directory (by default 
 > After the first deployment to your GitHub repository, your repository Pages settings (Settings > Pages) will be automatically updated to point to the documentation site content stored in the `gh-pages` branch.
 
 > [!WARNING]
-> Before being able to succesfully publishing the project documentation to GitHub Pages, you need to add a `RELEASE_TOKEN` to your repository's 'Actions secrets and variables' settings page. The `RELEASE_TOKEN` is generated from your GitHub 'Developer Settings' page. Make sure to select the full `repo` scope when generating it.
+> Before being able to successfully publish the project documentation to GitHub Pages, you need to add a `RELEASE_TOKEN` to your repository's 'Actions secrets and variables' settings page. The `RELEASE_TOKEN` is generated from your GitHub 'Developer Settings' page. Make sure to select the full `repo` scope when generating it.
 
 ## Docker
 
