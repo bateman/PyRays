@@ -305,7 +305,7 @@ $(BUILD_STAMP): pyproject.toml Makefile $(PY_FILES)
 build-all: build docker-build docs-build  ## Build the project package and Docker container, generate the documentation
 
 .PHONY: publish
-publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI - use ARGS="<PyPI token>"
+publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI (use ARGS="<PyPI token>")
 	## if no .env file is found, check ARGS
 	@if [ ! -f .env ]; then \
 		if [ -z "$(ARGS)" ]; then \
@@ -389,7 +389,7 @@ staging: | dep/git
 	echo -e "  $(CYAN)Staging area empty:$(RESET) $$(cat $(STAGING_STAMP))"
 
 .PHONY: tag
-tag: | version staging  ## Tag a new release version - use ARGS="..." to specify the version
+tag: | version staging  ## Tag a new release version (use ARGS="..." to specify the version)
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		case "$(ARGS)" in \
