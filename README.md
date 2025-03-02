@@ -34,22 +34,22 @@ System
 Project
   install               Install the project for development
   production            Install the project for production
-  update                Update the project
+  update                Update all project dependencies
   clean                 Clean the project - removes all cache dirs and stamp files
   reset                 Cleans plus removes the virtual environment (use ARGS="hard" to re-initialize the project)
   run                   Run the project
   test                  Run the tests
   build                 Build the project as a package
-  build-all             Build the project package and generate the documentation
-  publish               Publish the project to PyPI
-  publish-all            Publish the project package to PyPI and the documentation to GitHub Pages
+  build-all             Build the project package and Docker container, generate the documentation
+  publish               Publish the project to PyPI (use ARGS="<PyPI token>")
+  publishall            Publish the project package to PyPI and the documentation to GitHub Pages
   export-deps           Export the project's dependencies to requirements*.txt files
 Check
   format                Format the code
   lint                  Lint the code
   precommit             Run all pre-commit checks
 Release
-  tag                   Tag a new release version - use ARGS="..." to specify the version
+  tag                   Tag a new release version (use ARGS="..." to specify the version)
   release               Push the tagged version to origin - triggers the release and docker actions
 Docker
   docker-build          Build the Docker image
@@ -80,7 +80,7 @@ This is a template repository, so first, create a new GitHub repository and choo
           Git: git version 2.39.5 (Apple Git-154)
         Project:
           Project name: pyrays
-          Project description: '"A GitHub template for Python projects using uv"'
+          Project description: 'A GitHub template for Python projects using uv'
           Project author: Fabio Calefato (bateman <fcalefato@gmail.com>)
           Project version: 0.1.0
           Project license: MIT
@@ -88,12 +88,13 @@ This is a template repository, so first, create a new GitHub repository and choo
           Project directory: /Users/fabio/Dev/git/PyRays
         Python:
           Python version: 3.11.11
-          uv version: uv 0.6.2 (6d3614eec 2025-02-19)
           Virtualenv name: .venv
+          uv version: uv 0.6.2 (6d3614eec 2025-02-19)
         Docker:
           Docker: Docker version 27.5.1, build 9f9e405
           Docker Compose: Docker Compose version v2.32.4-desktop.1
           Docker image name: pyrays
+          Docker container name: pyrays
 
 4. If any needed tools are missing, they will be marked as '*not installed*'. Install them and re-run `make info` to ensure the tools are now correctly installed and in your PATH.
 5. Update the project variables values by editing `pyproject.toml`. In addition, you can add any of the variables in the list below to a `Makefile.env` file to override the default values used in the  `Makefile`. You can check the configuration of each variable using `make info`.
