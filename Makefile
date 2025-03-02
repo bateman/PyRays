@@ -302,7 +302,7 @@ $(BUILD_STAMP): pyproject.toml Makefile $(PY_FILES)
 	@touch $(BUILD_STAMP)
 
 .PHONY: build-all
-build-all: build docker-build docs-build  ## Build the project package and Docker container, generate the documentation
+build-all: build docker-build docs-build  ## Build the project package and generate the documentation
 
 .PHONY: publish
 publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI (use ARGS="<PyPI token>")
@@ -326,7 +326,7 @@ publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI (use ARGS="<PyPI 
 	fi
 
 .PHONY: publish-all
-publishall: publish docs-publish  ## Publish the project package to PyPI and the documentation to GitHub Pages
+publish-all: publish docs-publish  ## Publish the project package to PyPI and the documentation to GitHub Pages
 
 .PHONY: export-deps
 export-deps: dep/uv $(DEPS_EXPORT_STAMP)  ## Export the project's dependencies to requirements*.txt files
