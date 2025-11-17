@@ -1,4 +1,4 @@
-"""Provide information about the P3T project template."""
+"""Provide information about the PyRays project template."""
 
 import toml
 
