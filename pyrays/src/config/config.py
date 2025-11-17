@@ -1,6 +1,6 @@
 """Module for handling configuration file.
 
-Condigurations are loaded from a JSON file and can be accessed as attributes of the `Config` class.
+Configurations are loaded from a JSON file and can be accessed as attributes of the `Config` class.
 
 
 ``` py title="Example"
