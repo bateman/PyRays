@@ -454,7 +454,7 @@ docker-run: dep/docker $(DOCKER_BUILD_STAMP)  ## Run the Docker container
 	@echo -e "$(GREEN)Docker container executed.$(RESET)"
 
 .PHONY: docker-all
-docker-all: build run  ## Build and run the Docker container
+docker-all: docker-build docker-run  ## Build and run the Docker container
 
 .PHONY: docker-stop
 docker-stop: | dep/docker dep/docker-compose  ## Stop the Docker container
