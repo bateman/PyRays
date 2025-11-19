@@ -49,6 +49,7 @@ Check
   lint                  Lint the code
   precommit             Run all pre-commit checks
 Release
+  show-tags             Show all tags (local and remote)
   tag                   Tag a new release version (use ARGS="..." to specify the version)
   release               Push the tagged version to origin - triggers the release and docker actions
 Docker
