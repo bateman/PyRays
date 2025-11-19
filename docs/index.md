@@ -40,9 +40,9 @@ Project
   run                   Run the project
   test                  Run the tests
   build                 Build the project as a package
-  build-all             Build the project package and Docker container, generate the documentation
+  build-all             Build the project package and generate the documentation
   publish               Publish the project to PyPI (use ARGS="<PyPI token>")
-  publishall            Publish the project package to PyPI and the documentation to GitHub Pages
+  publish-all           Publish the project package to PyPI and the documentation to GitHub Pages
   export-deps           Export the project's dependencies to requirements*.txt files
 Check
   format                Format the code
