@@ -73,6 +73,12 @@ PY_FILES_TO_UPDATE := $(SRC)/main.py $(SRC)/__main__.py $(SRC)/logger/__init__.p
 DOCS_FILES_TO_RESET := README.md $(DOCS)/index.md $(DOCS)/about.md
 
 # Colors
+# Color scheme:
+#   MAGENTA: Section headers and main titles
+#   CYAN: Labels, field names, and operation start messages
+#   GREEN: Success and completion messages
+#   YELLOW: Warnings, advisory notes, "already exists" messages, and user prompts
+#   RED: Errors and missing dependencies
 RESET := \033[0m
 RED := \033[1;31m
 GREEN := \033[0;32m
@@ -199,10 +205,10 @@ virtualenv: | dep/uv  ## Check if virtualenv exists - create it if not
 		$(UV) venv --python $$PYTHON_MAJOR_MINOR || exit 1; \
 		echo -e "$(GREEN)Virtualenv created at $(VIRTUALENV_NAME).$(RESET)"; \
 	else \
-		echo -e "$(GREEN)Virtualenv already exists at $(VIRTUALENV_NAME).$(RESET)"; \
+		echo -e "$(YELLOW)Virtualenv already exists at $(VIRTUALENV_NAME).$(RESET)"; \
 	fi
 	@echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"
-	@echo -e "$(CYAN)Note: Make targets use 'uv run' and don't require manual activation.$(RESET)"
+	@echo -e "$(YELLOW)Note: Make targets use 'uv run' and don't require manual activation.$(RESET)"
 
 .PHONY: uv
 uv: | dep/uv  ## Check if uv is installed
@@ -268,7 +274,7 @@ $(PRODUCTION_STAMP): $(INSTALL_STAMP)
 update: | dep/uv install  ## Update all project dependencies
 	@echo -e "$(CYAN)\nUpdating project dependencies...$(RESET)"
 	@if [ -f "$(PRODUCTION_STAMP)" ]; then \
-		echo -e "$(YELLOW)Production environment detected. Updating only core dependencies...$(RESET)"; \
+		echo -e "$(CYAN)Production environment detected. Updating only core dependencies...$(RESET)"; \
 		$(UV) lock --upgrade; \
 		$(UV) sync --all-packages --upgrade $(ARGS); \
 	else \
@@ -281,7 +287,7 @@ update: | dep/uv install  ## Update all project dependencies
 
 .PHONY: clean
 clean:  dep/python  ## Clean the project - removes all cache dirs and stamp files
-	@echo -e "$(YELLOW)\nCleaning the project...$(RESET)"
+	@echo -e "$(CYAN)\nCleaning the project...$(RESET)"
 	@find . -type d -name "__pycache__" -exec rm -rf {} +
 	@rm -rf $(STAMP_FILES) $(CACHE_DIRS) $(BUILD) $(EGG_INFO) $(DOCS_SITE) $(COVERAGE) || true
 	@echo -e "$(GREEN)Project cleaned.$(RESET)"
@@ -293,7 +299,7 @@ reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-in
 	case $$answer in \
 		[Yy]* ) \
 			$(MAKE) clean; \
-			echo -e "$(YELLOW)Resetting the project...$(RESET)"; \
+			echo -e "$(CYAN)Resetting the project...$(RESET)"; \
 			$(GIT) checkout uv.lock > /dev/null || true ; \
 			rm -rf $(VIRTUALENV_NAME) > /dev/null || true  ; \
 			if [ "$(ARGS)" = "hard" ]; then \
