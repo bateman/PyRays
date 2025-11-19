@@ -395,28 +395,34 @@ staging: | dep/git
 	echo -e "  $(CYAN)Staging area empty:$(RESET) $$(cat $(STAGING_STAMP))"
 
 .PHONY: tag
-tag: | dep/uv version staging  ## Tag a new release version (use ARGS="..." to specify the version)
+tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|major")
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		case "$(ARGS)" in \
-			"patch"|"minor"|"major"|"prepatch"|"preminor"|"premajor"|"prerelease"|"--next-phase") \
+			"patch"|"minor"|"major") \
 				echo -e "$(CYAN)\nCreating a new version...$(RESET)"; \
-				CURRENT_VERSION=$$($(UV) run python bump_version.py $(ARGS) --dry-run | cut -d' ' -f1); \
-				NEW_VERSION=$$($(UV) run python bump_version.py $(ARGS)); \
-				if [ $$? -ne 0 ]; then \
-					echo -e "$(RED)Failed to bump version.$(RESET)"; \
-					exit 1; \
-				fi; \
+				$(eval CURRENT_VERSION := $(shell grep -m1 'version = "[^"]*"' pyproject.toml | sed 's/.*version = "\([^"]*\)".*/\1/')) \
+				$(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | awk -F. \
+					-v OFS=. \
+					-v action="$(ARGS)" \
+					'{ \
+						major=$$1; minor=$$2; patch=$$3; \
+						if (action=="major") {major++; minor=0; patch=0} \
+						else if (action=="minor") {minor++; patch=0} \
+						else if (action=="patch") {patch++} \
+						print major,minor,patch \
+					}')) \
+				$(SED_INPLACE) 's/^version = ".*"/version = "$(NEW_VERSION)"/' pyproject.toml; \
 				$(UV) lock; \
 				$(GIT) add pyproject.toml uv.lock; \
-				$(GIT) commit -m "Bump version from $$CURRENT_VERSION to $$NEW_VERSION"; \
-				echo -e "$(CYAN)\nTagging new version... [$$CURRENT_VERSION->$$NEW_VERSION]$(RESET)"; \
-				$(GIT) tag -a v$$NEW_VERSION -m "Release version $$NEW_VERSION"; \
+				$(GIT) commit -m "Bump version from $(CURRENT_VERSION) to $(NEW_VERSION)"; \
+				echo -e "$(CYAN)\nTagging new version... [$(CURRENT_VERSION)->$(NEW_VERSION)]$(RESET)"; \
+				$(GIT) tag -a v$(NEW_VERSION) -m "Release version $(NEW_VERSION)"; \
 				echo -e "$(GREEN)New version tagged.$(RESET)"; \
 				;; \
 			*) \
 				echo -e "$(RED)Invalid version argument.$(RESET)"; \
-				echo -e "$(RED)\nUsage: make tag ARGS=\"patch|minor|major|prepatch|preminor|premajor|prerelease|--next-phase\"$(RESET)"; \
+				echo -e "$(RED)\nUsage: make tag ARGS=\"patch|minor|major\"$(RESET)"; \
 				exit 1; \
 				;; \
 		esac; \
