@@ -142,10 +142,8 @@ dep/git:
 .PHONY: dep/venv
 dep/venv: dep/uv
 	@if [ ! -d "$(VIRTUALENV_NAME)" ]; then \
-		echo -e "$(RED)Virtualenv not found.$(RESET)" && exit 1; \
-    elif [ ! "$$(which python)" = "$$PWD/$(VIRTUALENV_NAME)/bin/python" ]; then \
-        echo -e "$(RED)Virtualenv exists but is not activated.$(RESET)" && exit 1; \
-    fi
+		echo -e "$(RED)Virtualenv not found. Run 'make virtualenv' first.$(RESET)" && exit 1; \
+	fi
 
 .PHONY: dep/python
 dep/python:
@@ -182,16 +180,17 @@ python: | dep/uv  ## Check if Python is installed
 
 # duplication dep/venv
 .PHONY: virtualenv
-virtualenv: | python  ## Check if virtualenv exists and activate it - create it if not
+virtualenv: | python  ## Check if virtualenv exists - create it if not
 	@if ! ls $(VIRTUALENV_NAME) > /dev/null ; then \
 		echo -e "$(YELLOW)\nLocal virtualenv not found. Creating it...$(RESET)"; \
 		$(UV) venv --python $(PYTHON_VERSION) || exit 1; \
-		echo -e "$(GREEN)Virtualenv created.$(RESET)"; \
+		echo -e "$(GREEN)Virtualenv created at $(VIRTUALENV_NAME).$(RESET)"; \
+		echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"; \
 	else \
-		echo -e "$(CYAN)\nVirtualenv already created.$(RESET)"; \
+		echo -e "$(CYAN)\nVirtualenv already exists at $(VIRTUALENV_NAME).$(RESET)"; \
+		echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"; \
 	fi
-	@$(SHELL) -c "source $(VIRTUALENV_NAME)/bin/activate" || true
-	@echo -e "$(GREEN)Virtualenv activated.$(RESET)"
+	@echo -e "$(CYAN)Note: Make targets use 'uv run' and don't require manual activation.$(RESET)"
 
 .PHONY: uv
 uv: | dep/uv  ## Check if uv is installed

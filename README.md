@@ -28,7 +28,7 @@ Info
   info                  Show development environment info
 System
   python                Check if Python is installed
-  virtualenv            Check if virtualenv exists and activate it - create it if not
+  virtualenv            Check if virtualenv exists - create it if not
   uv                    Check if uv is installed
   uv-update             Update uv
 Project
@@ -105,6 +105,9 @@ This is a template repository, so first, create a new GitHub repository and choo
 
 6. To create the virtual environment, run `make virtualenv`. Note that this will also check for the requested Python version; if not available, it will ask you to use `uv` to install it.
 7. To complete the installation for development purposes, run `make install` -- this will install all development dependencies. Otherwise, for production purposes only, run `make production`.
+
+> [!NOTE]
+> All Make targets use `uv run` to automatically execute commands within the virtual environment, so manual activation (via `source .venv/bin/activate`) is optional. Manual activation is only needed for interactive work like running a Python REPL or when you want persistent environment activation across multiple manual commands.
 
 > [!TIP]
 > The installation step will install some 'default' dependencies, such as `rich` and `pretty-errors`, but also dev-dependecies, such as `ruff` and `pytest`.
