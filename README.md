@@ -195,7 +195,7 @@ As shown in the table below, there are four GitHub Actions workflow. Take note o
 |  `release.yml`  | Release package to PyPI and GitHub 📦       | tag push                                               | -                                       |
 |   `docker.yml`  | Push image to DockerHub 🚀                  | tag push                                               | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` |
 |   `tests.yml`   | Run tests and upload coverage to Codecov 📊 | commit push on branches != `main`, manual              | `CODECOV_TOKEN`                         |
-|    `docs.yml`   | Upload documentation to GitHub Pages 📓     | commit push on `docs/**` path of `main` branch, manual | `RELEASE_TOKEN`                         |
+|    `docs.yml`   | Upload documentation to GitHub Pages 📓     | commit push on `docs/**` path of `main` branch, manual | -                                       |
 
 > [!CAUTION]
 > Follow this [guide](https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/#configuring-trusted-publishing) and configure PyPI’s trusted publishing implementation to connect to GitHub Actions CI/CD. Otherwise, the release workflow will fail.
@@ -228,10 +228,7 @@ The documentation files will be stored in the `DOCS_SITE` directory (by default 
 > You can edit the `mkdocs.yml` file to adapt it to your project's specifics. For example, you can change the `material` theme or adjust the logo and colors. Refer to this [guide](https://squidfunk.github.io/mkdocs-material/setup/) for more.
 
 > [!NOTE]
-> After the first deployment to your GitHub repository, your repository Pages settings (Settings > Pages) will be automatically updated to point to the documentation site content stored in the `gh-pages` branch.
-
-> [!WARNING]
-> Before being able to successfully publish the project documentation to GitHub Pages, you need to add a `RELEASE_TOKEN` to your repository's 'Actions secrets and variables' settings page. The `RELEASE_TOKEN` is generated from your GitHub 'Developer Settings' page. Make sure to select the full `repo` scope when generating it.
+> After the first deployment to your GitHub repository, your repository Pages settings (Settings > Pages) will be automatically updated to point to the documentation site content stored in the `gh-pages` branch. The `docs.yml` workflow uses the built-in `GITHUB_TOKEN` with automatic permissions, so no additional secrets are required.
 
 ## Docker
 

@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install mkdocs dependencies  # This avoids installing all the other unecessary dependencies
+      - name: Install mkdocs dependencies  # This avoids installing all the other unnecessary dependencies
         run: pip install -r requirements-docs.txt
       - name: Build documentation
         run: mkdocs build --verbose --clean
@@ -32,4 +32,4 @@ jobs:
           target_branch: gh-pages
           build_dir: site
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

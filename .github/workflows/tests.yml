@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  tests:
     name: Run tests and upload coverage
     runs-on: ubuntu-latest
     steps:
