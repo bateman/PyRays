@@ -31,7 +31,7 @@ AUTHOR_NAME ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'nam
 AUTHOR_EMAIL ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'email' pyproject.toml | $(SED) -E 's/.*email = "([^"]+)".*/\1/'; fi || if [ -n "$(GIT)" ]; then $(GIT) config --get user.email; fi)
 GITHUB_REPO ?= $(shell if [ -n "$(GIT)" ]; then url=$$($(GIT) config --get remote.origin.url); echo $${url%.git}; fi)
 GITHUB_USER_NAME ?= $(shell if [ -n "$(AWK)" ]; then echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}'; fi || echo "")
-PROJECT_VERSION ?= $(shell if [ -n "$(UV)" ]; then $(UV) version -s 2>/dev/null; fi || echo 0.1.0)
+PROJECT_VERSION ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) '^version = ' pyproject.toml | $(SED) 's/version = "\(.*\)"/\1/'; fi)
 PROJECT_DESCRIPTION ?= '$(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'description' pyproject.toml | $(SED) 's/description = //'; fi)'
 PROJECT_LICENSE ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | $(SED) -E 's/.*"([^"]+)".*/\1/'; fi)
 PYTHON_VERSION ?= 3.11.11
