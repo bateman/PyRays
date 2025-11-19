@@ -148,7 +148,7 @@ dep/python:
 
 .PHONY: dep/uv
 dep/uv: dep/python
-	@if [ -z "$(UV)" ]; then echo -e "$(RED)un not found.$(RESET)" && exit 1; fi
+	@if [ -z "$(UV)" ]; then echo -e "$(RED)uv not found.$(RESET)" && exit 1; fi
 
 .PHONY: dep/docker
 dep/docker:
@@ -156,7 +156,7 @@ dep/docker:
 
 .PHONY: dep/docker-compose
 dep/docker-compose:
-	@if [ -z "$(DOCKER_COMPOSE)" ]; then echo -e"$(RED)Docker Compose not found.$(RESET)" && exit 1; fi
+	@if [ -z "$(DOCKER_COMPOSE)" ]; then echo -e "$(RED)Docker Compose not found.$(RESET)" && exit 1; fi
 
 #-- System
 
@@ -236,7 +236,7 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 .PHONY: production
 production: dep/uv $(PRODUCTION_STAMP)  ## Install the project for production
 $(PRODUCTION_STAMP): $(INSTALL_STAMP)
-	@echo -e "$(CYAN)\Install project for production...$(RESET)"
+	@echo -e "$(CYAN)\nInstall project for production...$(RESET)"
 	@$(UV) sync
 	@$(UV) lock
 	@touch $(PRODUCTION_STAMP)
