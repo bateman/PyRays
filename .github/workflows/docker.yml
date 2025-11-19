@@ -29,9 +29,10 @@ jobs:
     - name: Retrieve tag
       id: tag
       run: |
-        version=${GITHUB_REF/refs\/tags\//}
-        if [ "$version" == "refs/heads/main" ]; then
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             version='latest'
+        else
+            version=${GITHUB_REF/refs\/tags\//}
         fi
         echo "version=$version" >> $GITHUB_OUTPUT
     - name: Set up Docker Buildx
@@ -46,4 +47,6 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.reponame.outputs.name }}:latest, ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.reponame.outputs.name }}:${{ steps.tag.outputs.version }}
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.reponame.outputs.name }}:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.reponame.outputs.name }}:${{ steps.tag.outputs.version }}
