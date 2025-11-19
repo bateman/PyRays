@@ -138,6 +138,14 @@ The project uses the following development libraries:
 * `mypy`: for static type-checking.
 * `pre-commit`: for automating all the checks above before committing.
 
+> [!NOTE]
+> Pre-commit hooks are automatically installed when you run `make install`. The hooks will run automatically before each commit to ensure code quality.
+>
+> If you need to reinstall hooks (e.g., after updating `.pre-commit-config.yaml` or if hooks were uninstalled), run:
+> ```bash
+> make install-hooks
+> ```
+
 > [!TIP]
 > To manually run code formatting and linting, run `make format` and `make lint`, respectively.
 > To execute all the checks, stage your changes, then run `make precommit`.
