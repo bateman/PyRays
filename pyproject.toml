@@ -1,6 +1,6 @@
 [project]
 name = "PyRays"
-version = "0.1.8"
+version = "0.1.9"
 description = "A GitHub template for Python projects using uv"
 authors = [
     {name = "Fabio Calefato", email = "fcalefato@gmail.com"}
