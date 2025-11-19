@@ -294,11 +294,11 @@ reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-in
 	esac
 
 .PHONY: run
-run: dep/venv $(INSTALL_STAMP)  ## Run the project
+run: $(INSTALL_STAMP)  ## Run the project
 	@$(UV) run python -m $(PROJECT_NAME) $(ARGS)
 
 .PHONY: test
-test: dep/venv $(INSTALL_STAMP)  ## Run the tests
+test: $(INSTALL_STAMP)  ## Run the tests
 	@echo -e "$(CYAN)\nRunning the tests...$(RESET)"
 	@$(UV) run pytest --cov=$(SRC) $(TESTS) $(ARGS)
 
@@ -351,13 +351,13 @@ $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 #-- Check
 
 .PHONY: format
-format: dep/ruff $(INSTALL_STAMP)  ## Format the code
+format: $(INSTALL_STAMP)  ## Format the code
 	@echo -e "$(CYAN)\nFormatting the code...$(RESET)"
 	@$(UV) run ruff format $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code formatted.$(RESET)"
 
 .PHONY: lint
-lint: dep/ruff $(INSTALL_STAMP)  ## Lint the code
+lint: $(INSTALL_STAMP)  ## Lint the code
 	@echo -e "$(CYAN)\nLinting the code...$(RESET)"
 	@$(UV) run ruff check $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code linted.$(RESET)"
