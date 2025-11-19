@@ -3,7 +3,7 @@ name: Release package to PyPI and GitHub 📦
 on:
   push:
     tags:
-      - '*'
+      - '[0-9]+.*'
 
 env:
   PACKAGE_NAME: ''
