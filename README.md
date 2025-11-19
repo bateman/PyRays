@@ -55,6 +55,7 @@ Check
   check                 Run all checks without fixing (format-check, lint, type-check)
   precommit             Run all pre-commit checks
 Release
+  show-version          Show current project version
   show-tags             Show all tags (local and remote)
   tag                   Tag a new release version (use ARGS="..." to specify the version)
   release               Push the tagged version to origin - triggers the release and docker actions

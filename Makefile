@@ -420,6 +420,10 @@ precommit: $(INSTALL_STAMP) $(PRECOMMIT_CONF)  ## Run all pre-commit checks
 
 #-- Release
 
+.PHONY: show-version
+show-version:  ## Show current project version
+	@echo -e "$(CYAN)\nCurrent version:$(RESET) $(PROJECT_VERSION)"
+
 .PHONY: show-tags
 show-tags: | dep/git  ## Show all tags (local and remote)
 	@echo -e "$(CYAN)\nLocal tags:$(RESET)"
