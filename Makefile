@@ -9,7 +9,7 @@ MAKEFLAGS += --no-builtin-rules
 # Executables
 MAKE_VERSION := $(shell make --version | head -n 1 2> /dev/null)
 SED := $(shell command -v sed 2> /dev/null)
-SED_INPLACE := $(shell if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i"; else echo "$(SED) -i ''"; fi)
+SED_INPLACE := $(shell if [ -n "$(SED)" ]; then if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i"; else echo "$(SED) -i ''"; fi; fi)
 AWK := $(shell command -v awk 2> /dev/null)
 GREP := $(shell command -v grep 2> /dev/null)
 UV := $(shell command -v uv 2> /dev/null)
@@ -24,16 +24,16 @@ DOCKER_COMPOSE_VERSION := $(shell if [ -n "$(DOCKER_COMPOSE)" ]; then $(DOCKER_C
 # Project variables -- change as needed before running make install
 # override the defaults by setting the variables in a Makefile.env file
 -include Makefile.env
-PROJECT_NAME ?= $(shell $(GREP) '^name = ' pyproject.toml | $(SED) 's/name = "\(.*\)"/\1/')
+PROJECT_NAME ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) '^name = ' pyproject.toml | $(SED) 's/name = "\(.*\)"/\1/'; fi)
 # make sure the project name is lowercase and has no spaces
 PROJECT_NAME := $(shell echo $(PROJECT_NAME) | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
-AUTHOR_NAME ?= $(shell $(GREP) 'name.*email' pyproject.toml | $(SED) -E 's/.*name = "([^"]+)".*/\1/' || $(GIT) config --get user.name)
-AUTHOR_EMAIL ?= $(shell $(GREP) 'email' pyproject.toml | $(SED) -E 's/.*email = "([^"]+)".*/\1/' || $(GIT) config --get user.email)
-GITHUB_REPO ?= $(shell url=$$($(GIT) config --get remote.origin.url); echo $${url%.git})
-GITHUB_USER_NAME ?= $(shell echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}' || echo "")
-PROJECT_VERSION ?= $(shell $(UV) version -s 2>/dev/null || echo 0.1.0)
-PROJECT_DESCRIPTION ?= '$(shell $(GREP) 'description' pyproject.toml | $(SED) 's/description = //')'
-PROJECT_LICENSE ?= $(shell $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | $(SED) -E 's/.*"([^"]+)".*/\1/')
+AUTHOR_NAME ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'name.*email' pyproject.toml | $(SED) -E 's/.*name = "([^"]+)".*/\1/'; fi || if [ -n "$(GIT)" ]; then $(GIT) config --get user.name; fi)
+AUTHOR_EMAIL ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'email' pyproject.toml | $(SED) -E 's/.*email = "([^"]+)".*/\1/'; fi || if [ -n "$(GIT)" ]; then $(GIT) config --get user.email; fi)
+GITHUB_REPO ?= $(shell if [ -n "$(GIT)" ]; then url=$$($(GIT) config --get remote.origin.url); echo $${url%.git}; fi)
+GITHUB_USER_NAME ?= $(shell if [ -n "$(AWK)" ]; then echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}'; fi || echo "")
+PROJECT_VERSION ?= $(shell if [ -n "$(UV)" ]; then $(UV) version -s 2>/dev/null; fi || echo 0.1.0)
+PROJECT_DESCRIPTION ?= '$(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'description' pyproject.toml | $(SED) 's/description = //'; fi)'
+PROJECT_LICENSE ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | $(SED) -E 's/.*"([^"]+)".*/\1/'; fi)
 PYTHON_VERSION ?= 3.11.11
 VIRTUALENV_NAME ?= .venv
 PRECOMMIT_CONF ?= .pre-commit-config.yaml
