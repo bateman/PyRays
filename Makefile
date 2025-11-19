@@ -90,6 +90,11 @@ ARGS ?=
 help:  ## Show this help message
 	@echo -e "\n$(MAGENTA)$(PROJECT_NAME) v$(PROJECT_VERSION) Makefile$(RESET)"
 	@echo -e "\n$(MAGENTA)Usage:\n$(RESET)  make $(CYAN)[target] [ARGS=\"...\"]$(RESET)\n"
+	@if [ -z "$(GREP)" ] || [ -z "$(AWK)" ] || [ -z "$(SED)" ]; then \
+		echo -e "$(RED)Error: Required tools (grep, awk, sed) not found.$(RESET)"; \
+		echo -e "$(YELLOW)Please install them to see the full help menu.$(RESET)"; \
+		exit 1; \
+	fi
 	@$(GREP) -E '^[0-9a-zA-Z_-]+(/?[0-9a-zA-Z_-]*)*:.*?## .*$$|(^#--)' $(firstword $(MAKEFILE_LIST)) \
 	| $(AWK) 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-21s\033[0m %s\n", $$1, $$2}' \
 	| $(SED) -e 's/\[36m  #-- /\[1;35m/'
@@ -401,6 +406,10 @@ tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|majo
 		case "$(ARGS)" in \
 			"patch"|"minor"|"major") \
 				echo -e "$(CYAN)\nCreating a new version...$(RESET)"; \
+				if [ -z "$(GREP)" ] || [ -z "$(SED)" ] || [ -z "$(AWK)" ] || [ -z "$(SED_INPLACE)" ] || [ -z "$(UV)" ] || [ -z "$(GIT)" ]; then \
+					echo -e "$(RED)Error: Required tools (grep, sed, awk, uv, git) not found.$(RESET)"; \
+					exit 1; \
+				fi; \
 				$(eval CURRENT_VERSION := $(shell $(GREP) -m1 'version = "[^"]*"' pyproject.toml | $(SED) 's/.*version = "\([^"]*\)".*/\1/')) \
 				$(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | $(AWK) -F. \
 					-v OFS=. \
@@ -412,6 +421,10 @@ tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|majo
 						else if (action=="patch") {patch++} \
 						print major,minor,patch \
 					}')) \
+				if [ -z "$(CURRENT_VERSION)" ] || [ -z "$(NEW_VERSION)" ]; then \
+					echo -e "$(RED)Error: Failed to compute version. Check pyproject.toml format.$(RESET)"; \
+					exit 1; \
+				fi; \
 				$(SED_INPLACE) 's/^version = ".*"/version = "$(NEW_VERSION)"/' pyproject.toml; \
 				$(UV) lock; \
 				$(GIT) add pyproject.toml uv.lock; \
@@ -432,8 +445,16 @@ tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|majo
 
 .PHONY: release
 release: | dep/git  ## Push the tagged version to origin - triggers the release and docker actions
+	@if [ -z "$(GREP)" ] || [ -z "$(AWK)" ]; then \
+		echo -e "$(RED)Error: Required tools (grep, awk) not found.$(RESET)"; \
+		exit 1; \
+	fi
 	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0))
 	@$(eval REMOTE_TAGS := $(shell $(GIT) ls-remote --tags origin | $(AWK) '{print $$2}'))
+	@if [ -z "$(TAG)" ]; then \
+		echo -e "$(RED)Error: No tags found. Please create a tag first with 'make tag'.$(RESET)"; \
+		exit 1; \
+	fi
 	@if echo $(REMOTE_TAGS) | $(GREP) -q $(TAG); then \
 		echo -e "$(YELLOW)\nNothing to push: tag $(TAG) already exists on origin.$(RESET)"; \
 	else \
