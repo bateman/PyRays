@@ -15,7 +15,7 @@ GREP := $(shell command -v grep 2> /dev/null)
 UV := $(shell command -v uv 2> /dev/null)
 PYTHON := $(shell command -v python 2> /dev/null)
 GIT := $(shell command -v git 2> /dev/null)
-GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || printf '\033[31mnot installed\033[0m\n')
 DOCKER := $(shell command -v docker 2> /dev/null)
 DOCKER_VERSION := $(shell if [ -n "$(DOCKER)" ]; then $(DOCKER) --version 2> /dev/null; fi)
 DOCKER_COMPOSE := $(shell if [ -n "$(DOCKER)" ]; then command -v docker-compose 2> /dev/null || echo "$(DOCKER) compose"; fi)
@@ -33,7 +33,7 @@ GITHUB_REPO ?= $(shell url=$$($(GIT) config --get remote.origin.url); echo $${ur
 GITHUB_USER_NAME ?= $(shell echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}' || echo "")
 PROJECT_VERSION ?= $(shell $(UV) version -s 2>/dev/null || echo 0.1.0)
 PROJECT_DESCRIPTION ?= '$(shell $(GREP) 'description' pyproject.toml | $(SED) 's/description = //')'
-PROJECT_LICENSE ?= $(shell $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | sed -E 's/.*"([^"]+)".*/\1/')
+PROJECT_LICENSE ?= $(shell $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | $(SED) -E 's/.*"([^"]+)".*/\1/')
 PYTHON_VERSION ?= 3.11.11
 VIRTUALENV_NAME ?= .venv
 PRECOMMIT_CONF ?= .pre-commit-config.yaml
@@ -90,7 +90,7 @@ ARGS ?=
 help:  ## Show this help message
 	@echo -e "\n$(MAGENTA)$(PROJECT_NAME) v$(PROJECT_VERSION) Makefile$(RESET)"
 	@echo -e "\n$(MAGENTA)Usage:\n$(RESET)  make $(CYAN)[target] [ARGS=\"...\"]$(RESET)\n"
-	@grep -E '^[0-9a-zA-Z_-]+(/?[0-9a-zA-Z_-]*)*:.*?## .*$$|(^#--)' $(firstword $(MAKEFILE_LIST)) \
+	@$(GREP) -E '^[0-9a-zA-Z_-]+(/?[0-9a-zA-Z_-]*)*:.*?## .*$$|(^#--)' $(firstword $(MAKEFILE_LIST)) \
 	| $(AWK) 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-21s\033[0m %s\n", $$1, $$2}' \
 	| $(SED) -e 's/\[36m  #-- /\[1;35m/'
 
@@ -401,8 +401,8 @@ tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|majo
 		case "$(ARGS)" in \
 			"patch"|"minor"|"major") \
 				echo -e "$(CYAN)\nCreating a new version...$(RESET)"; \
-				$(eval CURRENT_VERSION := $(shell grep -m1 'version = "[^"]*"' pyproject.toml | sed 's/.*version = "\([^"]*\)".*/\1/')) \
-				$(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | awk -F. \
+				$(eval CURRENT_VERSION := $(shell $(GREP) -m1 'version = "[^"]*"' pyproject.toml | $(SED) 's/.*version = "\([^"]*\)".*/\1/')) \
+				$(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | $(AWK) -F. \
 					-v OFS=. \
 					-v action="$(ARGS)" \
 					'{ \
@@ -434,7 +434,7 @@ tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|majo
 release: | dep/git  ## Push the tagged version to origin - triggers the release and docker actions
 	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0))
 	@$(eval REMOTE_TAGS := $(shell $(GIT) ls-remote --tags origin | $(AWK) '{print $$2}'))
-	@if echo $(REMOTE_TAGS) | grep -q $(TAG); then \
+	@if echo $(REMOTE_TAGS) | $(GREP) -q $(TAG); then \
 		echo -e "$(YELLOW)\nNothing to push: tag $(TAG) already exists on origin.$(RESET)"; \
 	else \
 		echo -e "$(CYAN)\nPushing new release $(TAG)...$(RESET)"; \
