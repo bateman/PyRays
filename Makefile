@@ -244,7 +244,7 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 
 
 .PHONY: production
-production: dep/uv $(PRODUCTION_STAMP)  ## Install the project for production
+production: dep/venv $(PRODUCTION_STAMP)  ## Install the project for production
 $(PRODUCTION_STAMP): $(INSTALL_STAMP)
 	@echo -e "$(CYAN)\nInstall project for production...$(RESET)"
 	@$(UV) sync
@@ -294,11 +294,11 @@ reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-in
 	esac
 
 .PHONY: run
-run: dep/python $(INSTALL_STAMP)  ## Run the project
+run: dep/venv $(INSTALL_STAMP)  ## Run the project
 	@$(UV) run python -m $(PROJECT_NAME) $(ARGS)
 
 .PHONY: test
-test: dep/uv $(INSTALL_STAMP)  ## Run the tests
+test: dep/venv $(INSTALL_STAMP)  ## Run the tests
 	@echo -e "$(CYAN)\nRunning the tests...$(RESET)"
 	@$(UV) run pytest --cov=$(SRC) $(TESTS) $(ARGS)
 
@@ -498,7 +498,7 @@ docker-remove: | dep/docker dep/docker-compose  ## Remove the Docker image, cont
 #-- Documentation
 
 .PHONY: docs-build
-docs-build: dep/uv $(DOCS_STAMP) $(DEPS_EXPORT_STAMP)  ## Generate the project documentation
+docs-build: dep/uv $(DOCS_STAMP)  ## Generate the project documentation
 $(DOCS_STAMP): $(DOCS_FILES) mkdocs.yml
 	@echo -e "$(CYAN)\nGenerating the project documentation...$(RESET)"
 	@if ! cmp -s README.md $(DOCS)/index.md; then \
