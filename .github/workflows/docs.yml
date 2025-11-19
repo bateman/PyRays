@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'docs/**'
+    tags:
+      - 'v[0-9]+.*'
   workflow_dispatch:
 
 jobs:
