@@ -174,22 +174,33 @@ python: | dep/uv  ## Check if Python is installed
 	@if ! $(PYTHON) --version | grep $(PYTHON_VERSION) > /dev/null ; then \
 		echo -e "$(YELLOW)Python version $(PYTHON_VERSION) not installed, installing it...$(RESET)"; \
 		$(UV) python install $(PYTHON_VERSION) || exit 1; \
+		echo -e "$(GREEN)Python version $(PYTHON_VERSION) installed.$(RESET)"; \
 	else \
 		echo -e "$(CYAN)\nPython version $(PYTHON_VERSION) available.$(RESET)"; \
 	fi
 
 # duplication dep/venv
 .PHONY: virtualenv
-virtualenv: | python  ## Check if virtualenv exists - create it if not
-	@if ! ls $(VIRTUALENV_NAME) > /dev/null ; then \
-		echo -e "$(YELLOW)\nLocal virtualenv not found. Creating it...$(RESET)"; \
-		$(UV) venv --python $(PYTHON_VERSION) || exit 1; \
-		echo -e "$(GREEN)Virtualenv created at $(VIRTUALENV_NAME).$(RESET)"; \
-		echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"; \
+virtualenv: | dep/uv  ## Check if virtualenv exists - create it if not
+	@echo -e "$(CYAN)\nChecking Python and virtualenv setup...$(RESET)"
+	@PYTHON_MAJOR_MINOR=$$(echo $(PYTHON_VERSION) | $(AWK) -F. '{print $$1"."$$2}'); \
+	if ! $(PYTHON) --version 2>/dev/null | grep -q "$$PYTHON_MAJOR_MINOR" ; then \
+		echo -e "$(YELLOW)Python version $$PYTHON_MAJOR_MINOR not found, installing $(PYTHON_VERSION)...$(RESET)"; \
+		$(UV) python install $(PYTHON_VERSION) || exit 1; \
+		echo -e "$(GREEN)Python version $(PYTHON_VERSION) installed.$(RESET)"; \
 	else \
-		echo -e "$(CYAN)\nVirtualenv already exists at $(VIRTUALENV_NAME).$(RESET)"; \
-		echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"; \
+		INSTALLED_VERSION=$$($(PYTHON) --version 2>&1 | $(AWK) '{print $$2}'); \
+		echo -e "$(GREEN)Python version $$INSTALLED_VERSION is available.$(RESET)"; \
 	fi
+	@if ! ls $(VIRTUALENV_NAME) > /dev/null 2>&1 ; then \
+		echo -e "$(YELLOW)Local virtualenv not found. Creating it...$(RESET)"; \
+		PYTHON_MAJOR_MINOR=$$(echo $(PYTHON_VERSION) | $(AWK) -F. '{print $$1"."$$2}'); \
+		$(UV) venv --python $$PYTHON_MAJOR_MINOR || exit 1; \
+		echo -e "$(GREEN)Virtualenv created at $(VIRTUALENV_NAME).$(RESET)"; \
+	else \
+		echo -e "$(GREEN)Virtualenv already exists at $(VIRTUALENV_NAME).$(RESET)"; \
+	fi
+	@echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"
 	@echo -e "$(CYAN)Note: Make targets use 'uv run' and don't require manual activation.$(RESET)"
 
 .PHONY: uv
