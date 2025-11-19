@@ -59,7 +59,7 @@ Release
   show-version          Show current project version
   show-tags             Show all tags (local and remote)
   show-changelog        Show changelog from git commits since last tag
-  tag                   Tag a new release version (use ARGS="..." to specify the version)
+  tag                   Tag a new release version (use ARGS="patch|minor|major")
   release               Push the tagged version to origin - triggers the release and docker actions
 Docker
   docker-build          Build the Docker image
