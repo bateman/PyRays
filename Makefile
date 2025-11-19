@@ -184,8 +184,9 @@ python: | dep/uv  ## Check if Python is installed
 virtualenv: | dep/uv  ## Check if virtualenv exists - create it if not
 	@echo -e "$(CYAN)\nChecking Python and virtualenv setup...$(RESET)"
 	@PYTHON_MAJOR_MINOR=$$(echo $(PYTHON_VERSION) | $(AWK) -F. '{print $$1"."$$2}'); \
-	if $(UV) python list | grep -q "cpython-$$PYTHON_MAJOR_MINOR" ; then \
-		FOUND_VERSION=$$($(UV) python list | grep "cpython-$$PYTHON_MAJOR_MINOR" | head -1 | $(AWK) '{print $$1}' | $(SED) 's/cpython-//'); \
+	UV_PYTHON_LIST=$$($(UV) python list); \
+	if echo "$$UV_PYTHON_LIST" | grep -q "cpython-$$PYTHON_MAJOR_MINOR" ; then \
+		FOUND_VERSION=$$(echo "$$UV_PYTHON_LIST" | grep "cpython-$$PYTHON_MAJOR_MINOR" | head -1 | $(AWK) '{print $$1}' | $(SED) 's/cpython-//'); \
 		echo -e "$(GREEN)Python version $$FOUND_VERSION is available.$(RESET)"; \
 	else \
 		echo -e "$(YELLOW)Python version $$PYTHON_MAJOR_MINOR not found, installing $(PYTHON_VERSION)...$(RESET)"; \
