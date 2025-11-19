@@ -41,7 +41,7 @@ class Config:
             except FileNotFoundError:
                 raise FileNotFoundError(f"Config file {filename} not found.")
 
-    def __getattr__(self, _):
+    def __getattr__(self, _) -> None:
         """Get the value of an attribute.
 
         Returns:
