@@ -35,6 +35,7 @@ System
 Project
   install               Install the project for development
   production            Install the project for production
+  install-hooks         Install git pre-commit hooks
   update                Update all project dependencies
   clean                 Clean the project - removes all cache dirs and stamp files
   reset                 Cleans plus removes the virtual environment (use ARGS="hard" to re-initialize the project)

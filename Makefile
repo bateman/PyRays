@@ -276,6 +276,14 @@ $(PRODUCTION_STAMP): $(INSTALL_STAMP)
 	@touch $(PRODUCTION_STAMP)
 	@echo -e "$(GREEN)Project installed for production.$(RESET)"
 
+.PHONY: install-hooks
+install-hooks: dep/venv $(PRECOMMIT_CONF)  ## Install git pre-commit hooks
+	@echo -e "$(CYAN)\nInstalling git pre-commit hooks...$(RESET)"
+	@$(UV) run pre-commit install
+	@$(UV) run pre-commit install --hook-type commit-msg
+	@echo -e "$(GREEN)Pre-commit hooks installed.$(RESET)"
+	@echo -e "$(YELLOW)Hooks will run automatically before commits.$(RESET)"
+
 .PHONY: update
 update: | dep/uv install  ## Update all project dependencies
 	@echo -e "$(CYAN)\nUpdating project dependencies...$(RESET)"
