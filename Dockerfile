@@ -16,7 +16,7 @@ COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy app files
-COPY pyrays pyrays
+COPY pyrays/src pyrays
 COPY entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 
