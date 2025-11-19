@@ -372,6 +372,16 @@ $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 	@echo -e "$(GREEN)Dependencies exported.$(RESET)"
 	@touch $(DEPS_EXPORT_STAMP)
 
+.PHONY: deps-tree
+deps-tree: | dep/uv  ## Show the dependency tree
+	@echo -e "$(CYAN)\nShowing dependency tree...$(RESET)"
+	@$(UV) tree
+
+.PHONY: deps-outdated
+deps-outdated: dep/venv  ## Show outdated dependencies
+	@echo -e "$(CYAN)\nChecking for outdated dependencies...$(RESET)"
+	@$(UV) pip list --outdated
+
 #-- Check
 
 .PHONY: format

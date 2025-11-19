@@ -45,6 +45,8 @@ Project
   publish               Publish the project to PyPI (use ARGS="<PyPI token>")
   publish-all           Publish the project package to PyPI and the documentation to GitHub Pages
   export-deps           Export the project's dependencies to requirements*.txt files
+  deps-tree             Show the dependency tree
+  deps-outdated         Show outdated dependencies
 Check
   format                Format the code
   lint                  Lint the code
