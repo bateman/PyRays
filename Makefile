@@ -439,6 +439,28 @@ show-tags: | dep/git  ## Show all tags (local and remote)
 	@echo -e "$(CYAN)Remote tags:$(RESET)"
 	@$(GIT) ls-remote --tags origin | $(AWK) -F'/' '{print $$NF}' | sort -V || echo -e "$(YELLOW)  No remote tags found$(RESET)"
 
+.PHONY: changelog
+changelog: | dep/git  ## Generate changelog from git commits since last tag
+	@echo -e "$(CYAN)\nGenerating changelog...$(RESET)"
+	@$(eval LAST_TAG := $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null || echo ""))
+	@if [ -z "$(LAST_TAG)" ]; then \
+		echo -e "$(YELLOW)No tags found. Generating changelog from all commits...$(RESET)"; \
+		echo "# Changelog" > CHANGELOG.md; \
+		echo "" >> CHANGELOG.md; \
+		echo "## All Commits" >> CHANGELOG.md; \
+		echo "" >> CHANGELOG.md; \
+		$(GIT) log --pretty=format:"- %s (%h)" >> CHANGELOG.md; \
+	else \
+		echo -e "$(CYAN)Last tag: $(LAST_TAG)$(RESET)"; \
+		echo "# Changelog" > CHANGELOG.md; \
+		echo "" >> CHANGELOG.md; \
+		echo "## Unreleased" >> CHANGELOG.md; \
+		echo "" >> CHANGELOG.md; \
+		$(GIT) log $(LAST_TAG)..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG.md; \
+	fi
+	@echo "" >> CHANGELOG.md
+	@echo -e "$(GREEN)Changelog generated at CHANGELOG.md$(RESET)"
+
 .PHONY: version
 version: | dep/git
 	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null || echo "0.0.0"))
