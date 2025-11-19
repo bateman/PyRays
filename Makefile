@@ -396,6 +396,22 @@ lint: $(INSTALL_STAMP)  ## Lint the code
 	@$(UV) run ruff check $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code linted.$(RESET)"
 
+.PHONY: format-check
+format-check: $(INSTALL_STAMP)  ## Check code formatting without modifying files
+	@echo -e "$(CYAN)\nChecking code formatting...$(RESET)"
+	@$(UV) run ruff format --check $(PY_FILES) $(TEST_FILES)
+	@echo -e "$(GREEN)Code formatting check completed.$(RESET)"
+
+.PHONY: type-check
+type-check: $(INSTALL_STAMP)  ## Run static type checking with mypy
+	@echo -e "$(CYAN)\nRunning type checks...$(RESET)"
+	@$(UV) run mypy $(PY_FILES)
+	@echo -e "$(GREEN)Type checking completed.$(RESET)"
+
+.PHONY: check
+check: format-check lint type-check  ## Run all checks without fixing (format-check, lint, type-check)
+	@echo -e "$(GREEN)\nAll checks passed!$(RESET)"
+
 .PHONY: precommit
 precommit: $(INSTALL_STAMP) $(PRECOMMIT_CONF)  ## Run all pre-commit checks
 	@echo -e "$(CYAN)\nRunning the pre-commit checks...$(RESET)"

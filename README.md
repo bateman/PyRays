@@ -50,6 +50,9 @@ Project
 Check
   format                Format the code
   lint                  Lint the code
+  format-check          Check code formatting without modifying files
+  type-check            Run static type checking with mypy
+  check                 Run all checks without fixing (format-check, lint, type-check)
   precommit             Run all pre-commit checks
 Release
   show-tags             Show all tags (local and remote)
