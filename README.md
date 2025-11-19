@@ -57,6 +57,7 @@ Docker
   docker-build          Build the Docker image
   docker-run            Run the Docker container
   docker-shell          Open shell in running Docker container
+  docker-logs           Show Docker container logs (use ARGS="--follow" to stream logs)
   docker-all            Build and run the Docker container
   docker-stop           Stop the Docker container
   docker-remove         Remove the Docker image, container, and volumes

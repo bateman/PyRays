@@ -520,6 +520,16 @@ docker-shell: | dep/docker  ## Open shell in running Docker container
 	fi
 	@$(DOCKER) exec -it $(DOCKER_CONTAINER_NAME) /bin/bash || $(DOCKER) exec -it $(DOCKER_CONTAINER_NAME) /bin/sh
 
+.PHONY: docker-logs
+docker-logs: | dep/docker  ## Show Docker container logs (use ARGS="--follow" to stream logs)
+	@echo -e "$(CYAN)\nShowing Docker container logs...$(RESET)"
+	@if [ -z "$$($(DOCKER) ps -aq -f name=$(DOCKER_CONTAINER_NAME))" ]; then \
+		echo -e "$(RED)Container $(DOCKER_CONTAINER_NAME) does not exist.$(RESET)"; \
+		echo -e "$(YELLOW)Build and run it with 'make docker-all' first.$(RESET)"; \
+		exit 1; \
+	fi
+	@$(DOCKER) logs $(ARGS) $(DOCKER_CONTAINER_NAME)
+
 .PHONY: docker-all
 docker-all: docker-build docker-run  ## Build and run the Docker container
 
