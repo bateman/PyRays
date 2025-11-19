@@ -210,6 +210,12 @@ virtualenv: | dep/uv  ## Check if virtualenv exists - create it if not
 	@echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"
 	@echo -e "$(YELLOW)Note: Make targets use 'uv run' and don't require manual activation.$(RESET)"
 
+.PHONY: shell
+shell: dep/venv  ## Open an interactive shell in the virtual environment
+	@echo -e "$(CYAN)\nOpening shell in virtual environment...$(RESET)"
+	@echo -e "$(YELLOW)Type 'exit' to leave the shell.$(RESET)"
+	@bash --init-file <(echo "source $(VIRTUALENV_NAME)/bin/activate; PS1='(venv) \[\033[1;35m\]$(PROJECT_NAME)\[\033[0m\] \w\$$ '")
+
 .PHONY: uv
 uv: | dep/uv  ## Check if uv is installed
 	@echo -e "$(CYAN)\n$(shell $(UV) --version) available.$(RESET)"
@@ -503,6 +509,16 @@ docker-run: dep/docker $(DOCKER_BUILD_STAMP)  ## Run the Docker container
 	@echo -e "$(CYAN)\nRunning the Docker container...$(RESET)"
 	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) ARGS="$(ARGS)" $(DOCKER_COMPOSE) up
 	@echo -e "$(GREEN)Docker container executed.$(RESET)"
+
+.PHONY: docker-shell
+docker-shell: | dep/docker  ## Open shell in running Docker container
+	@echo -e "$(CYAN)\nOpening shell in Docker container...$(RESET)"
+	@if [ -z "$$($(DOCKER) ps -q -f name=$(DOCKER_CONTAINER_NAME))" ]; then \
+		echo -e "$(RED)Container $(DOCKER_CONTAINER_NAME) is not running.$(RESET)"; \
+		echo -e "$(YELLOW)Start it with 'make docker-run' first.$(RESET)"; \
+		exit 1; \
+	fi
+	@$(DOCKER) exec -it $(DOCKER_CONTAINER_NAME) /bin/bash || $(DOCKER) exec -it $(DOCKER_CONTAINER_NAME) /bin/sh
 
 .PHONY: docker-all
 docker-all: docker-build docker-run  ## Build and run the Docker container

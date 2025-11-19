@@ -29,6 +29,7 @@ Info
 System
   python                Check if Python is installed
   virtualenv            Check if virtualenv exists - create it if not
+  shell                 Open an interactive shell in the virtual environment
   uv                    Check if uv is installed
   uv-update             Update uv
 Project
@@ -55,6 +56,7 @@ Release
 Docker
   docker-build          Build the Docker image
   docker-run            Run the Docker container
+  docker-shell          Open shell in running Docker container
   docker-all            Build and run the Docker container
   docker-stop           Stop the Docker container
   docker-remove         Remove the Docker image, container, and volumes
