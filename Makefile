@@ -439,6 +439,19 @@ show-tags: | dep/git  ## Show all tags (local and remote)
 	@echo -e "$(CYAN)Remote tags:$(RESET)"
 	@$(GIT) ls-remote --tags origin | $(AWK) -F'/' '{print $$NF}' | sort -V || echo -e "$(YELLOW)  No remote tags found$(RESET)"
 
+.PHONY: show-changelog
+show-changelog: | dep/git  ## Show changelog from git commits since last tag
+	@echo -e "$(CYAN)\nGenerating changelog...$(RESET)"
+	@$(eval LAST_TAG := $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null || echo ""))
+	@if [ -z "$(LAST_TAG)" ]; then \
+		echo -e "$(YELLOW)No tags found. Showing all commits...$(RESET)\n"; \
+		$(GIT) log --pretty=format:"- %s (%h)"; \
+	else \
+		echo -e "$(CYAN)Changes since $(LAST_TAG):$(RESET)\n"; \
+		$(GIT) log $(LAST_TAG)..HEAD --pretty=format:"- %s (%h)"; \
+	fi
+	@echo ""
+
 .PHONY: version
 version: | dep/git
 	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null || echo "0.0.0"))
