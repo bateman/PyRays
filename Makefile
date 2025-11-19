@@ -158,6 +158,12 @@ dep/docker:
 dep/docker-compose:
 	@if [ -z "$(DOCKER_COMPOSE)" ]; then echo -e "$(RED)Docker Compose not found.$(RESET)" && exit 1; fi
 
+.PHONY: dep/ruff
+dep/ruff: dep/venv
+	@if ! $(UV) run ruff --version > /dev/null 2>&1; then \
+		echo -e "$(RED)Ruff not found. Please run 'make install' first.$(RESET)" && exit 1; \
+	fi
+
 #-- System
 
 .PHONY: python
@@ -260,7 +266,7 @@ update: | dep/uv install  ## Update all project dependencies
 .PHONY: clean
 clean:  dep/python  ## Clean the project - removes all cache dirs and stamp files
 	@echo -e "$(YELLOW)\nCleaning the project...$(RESET)"
-	@find . -type d -name "__pycache__" | xargs rm -rf {};
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
 	@rm -rf $(STAMP_FILES) $(CACHE_DIRS) $(BUILD) $(EGG_INFO) $(DOCS_SITE) $(COVERAGE) || true
 	@echo -e "$(GREEN)Project cleaned.$(RESET)"
 
@@ -341,15 +347,15 @@ $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 #-- Check
 
 .PHONY: format
-format: $(INSTALL_STAMP)  ## Format the code
+format: dep/ruff $(INSTALL_STAMP)  ## Format the code
 	@echo -e "$(CYAN)\nFormatting the code...$(RESET)"
-	@ruff format $(PY_FILES) $(TEST_FILES)
+	@$(UV) run ruff format $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code formatted.$(RESET)"
 
 .PHONY: lint
-lint: $(INSTALL_STAMP)  ## Lint the code
+lint: dep/ruff $(INSTALL_STAMP)  ## Lint the code
 	@echo -e "$(CYAN)\nLinting the code...$(RESET)"
-	@ruff check $(PY_FILES) $(TEST_FILES)
+	@$(UV) run ruff check $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code linted.$(RESET)"
 
 .PHONY: precommit
@@ -389,29 +395,23 @@ staging: | dep/git
 	echo -e "  $(CYAN)Staging area empty:$(RESET) $$(cat $(STAGING_STAMP))"
 
 .PHONY: tag
-tag: | version staging  ## Tag a new release version (use ARGS="..." to specify the version)
+tag: | dep/uv version staging  ## Tag a new release version (use ARGS="..." to specify the version)
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		case "$(ARGS)" in \
 			"patch"|"minor"|"major"|"prepatch"|"preminor"|"premajor"|"prerelease"|"--next-phase") \
 				echo -e "$(CYAN)\nCreating a new version...$(RESET)"; \
-				$(eval CURRENT_VERSION := $(shell grep -m1 'version = "[^"]*"' pyproject.toml | sed 's/.*version = "\([^"]*\)".*/\1/')) \
-                $(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | awk -F. \
-                    -v OFS=. \
-                    -v action="$(ARGS)" \
-                    '{ \
-                        major=$$1; minor=$$2; patch=$$3; \
-                        if (action=="major") {major++; minor=0; patch=0} \
-                        else if (action=="minor") {minor++; patch=0} \
-                        else if (action=="patch") {patch++} \
-                        print major,minor,patch \
-                    }')) \
-				$(SED_INPLACE) 's/^version = ".*"/version = "$(NEW_VERSION)"/' pyproject.toml; \
+				CURRENT_VERSION=$$($(UV) run python bump_version.py $(ARGS) --dry-run | cut -d' ' -f1); \
+				NEW_VERSION=$$($(UV) run python bump_version.py $(ARGS)); \
+				if [ $$? -ne 0 ]; then \
+					echo -e "$(RED)Failed to bump version.$(RESET)"; \
+					exit 1; \
+				fi; \
 				$(UV) lock; \
 				$(GIT) add pyproject.toml uv.lock; \
-				$(GIT) commit -m "Bump version from $(CURRENT_VERSION) to $(NEW_VERSION)"; \
-				echo -e "$(CYAN)\nTagging new version... [$(CURRENT_VERSION)->$(NEW_VERSION)]$(RESET)"; \
-				$(GIT) tag -a v$(NEW_VERSION) -m "Release version $(NEW_VERSION)"; \
+				$(GIT) commit -m "Bump version from $$CURRENT_VERSION to $$NEW_VERSION"; \
+				echo -e "$(CYAN)\nTagging new version... [$$CURRENT_VERSION->$$NEW_VERSION]$(RESET)"; \
+				$(GIT) tag -a v$$NEW_VERSION -m "Release version $$NEW_VERSION"; \
 				echo -e "$(GREEN)New version tagged.$(RESET)"; \
 				;; \
 			*) \
