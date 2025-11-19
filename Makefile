@@ -9,13 +9,13 @@ MAKEFLAGS += --no-builtin-rules
 # Executables
 MAKE_VERSION := $(shell make --version | head -n 1 2> /dev/null)
 SED := $(shell command -v sed 2> /dev/null)
-SED_INPLACE := $(shell if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i"; else echo "$(SED) -i ''"; fi)
+SED_INPLACE := $(shell if [ -n "$(SED)" ]; then if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i"; else echo "$(SED) -i ''"; fi; fi)
 AWK := $(shell command -v awk 2> /dev/null)
 GREP := $(shell command -v grep 2> /dev/null)
 UV := $(shell command -v uv 2> /dev/null)
 PYTHON := $(shell command -v python 2> /dev/null)
 GIT := $(shell command -v git 2> /dev/null)
-GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || printf '\033[31mnot installed\033[0m\n')
 DOCKER := $(shell command -v docker 2> /dev/null)
 DOCKER_VERSION := $(shell if [ -n "$(DOCKER)" ]; then $(DOCKER) --version 2> /dev/null; fi)
 DOCKER_COMPOSE := $(shell if [ -n "$(DOCKER)" ]; then command -v docker-compose 2> /dev/null || echo "$(DOCKER) compose"; fi)
@@ -24,16 +24,16 @@ DOCKER_COMPOSE_VERSION := $(shell if [ -n "$(DOCKER_COMPOSE)" ]; then $(DOCKER_C
 # Project variables -- change as needed before running make install
 # override the defaults by setting the variables in a Makefile.env file
 -include Makefile.env
-PROJECT_NAME ?= $(shell $(GREP) '^name = ' pyproject.toml | $(SED) 's/name = "\(.*\)"/\1/')
+PROJECT_NAME ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) '^name = ' pyproject.toml | $(SED) 's/name = "\(.*\)"/\1/'; fi)
 # make sure the project name is lowercase and has no spaces
 PROJECT_NAME := $(shell echo $(PROJECT_NAME) | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
-AUTHOR_NAME ?= $(shell $(GREP) 'name.*email' pyproject.toml | $(SED) -E 's/.*name = "([^"]+)".*/\1/' || $(GIT) config --get user.name)
-AUTHOR_EMAIL ?= $(shell $(GREP) 'email' pyproject.toml | $(SED) -E 's/.*email = "([^"]+)".*/\1/' || $(GIT) config --get user.email)
-GITHUB_REPO ?= $(shell url=$$($(GIT) config --get remote.origin.url); echo $${url%.git})
-GITHUB_USER_NAME ?= $(shell echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}' || echo "")
-PROJECT_VERSION ?= $(shell $(UV) version -s 2>/dev/null || echo 0.1.0)
-PROJECT_DESCRIPTION ?= '$(shell $(GREP) 'description' pyproject.toml | $(SED) 's/description = //')'
-PROJECT_LICENSE ?= $(shell $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | sed -E 's/.*"([^"]+)".*/\1/')
+AUTHOR_NAME ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'name.*email' pyproject.toml | $(SED) -E 's/.*name = "([^"]+)".*/\1/'; fi || if [ -n "$(GIT)" ]; then $(GIT) config --get user.name; fi)
+AUTHOR_EMAIL ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'email' pyproject.toml | $(SED) -E 's/.*email = "([^"]+)".*/\1/'; fi || if [ -n "$(GIT)" ]; then $(GIT) config --get user.email; fi)
+GITHUB_REPO ?= $(shell if [ -n "$(GIT)" ]; then url=$$($(GIT) config --get remote.origin.url); echo $${url%.git}; fi)
+GITHUB_USER_NAME ?= $(shell if [ -n "$(AWK)" ]; then echo $(GITHUB_REPO) | $(AWK) -F/ 'NF>=4{print $$4}'; fi || echo "")
+PROJECT_VERSION ?= $(shell if [ -n "$(UV)" ]; then $(UV) version -s 2>/dev/null; fi || echo 0.1.0)
+PROJECT_DESCRIPTION ?= '$(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) 'description' pyproject.toml | $(SED) 's/description = //'; fi)'
+PROJECT_LICENSE ?= $(shell if [ -n "$(GREP)" ] && [ -n "$(SED)" ]; then $(GREP) -e 'license.*text.*=.*".*"' pyproject.toml | $(SED) -E 's/.*"([^"]+)".*/\1/'; fi)
 PYTHON_VERSION ?= 3.11.11
 VIRTUALENV_NAME ?= .venv
 PRECOMMIT_CONF ?= .pre-commit-config.yaml
@@ -90,7 +90,12 @@ ARGS ?=
 help:  ## Show this help message
 	@echo -e "\n$(MAGENTA)$(PROJECT_NAME) v$(PROJECT_VERSION) Makefile$(RESET)"
 	@echo -e "\n$(MAGENTA)Usage:\n$(RESET)  make $(CYAN)[target] [ARGS=\"...\"]$(RESET)\n"
-	@grep -E '^[0-9a-zA-Z_-]+(/?[0-9a-zA-Z_-]*)*:.*?## .*$$|(^#--)' $(firstword $(MAKEFILE_LIST)) \
+	@if [ -z "$(GREP)" ] || [ -z "$(AWK)" ] || [ -z "$(SED)" ]; then \
+		echo -e "$(RED)Error: Required tools (grep, awk, sed) not found.$(RESET)"; \
+		echo -e "$(YELLOW)Please install them to see the full help menu.$(RESET)"; \
+		exit 1; \
+	fi
+	@$(GREP) -E '^[0-9a-zA-Z_-]+(/?[0-9a-zA-Z_-]*)*:.*?## .*$$|(^#--)' $(firstword $(MAKEFILE_LIST)) \
 	| $(AWK) 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-21s\033[0m %s\n", $$1, $$2}' \
 	| $(SED) -e 's/\[36m  #-- /\[1;35m/'
 
@@ -157,6 +162,12 @@ dep/docker:
 .PHONY: dep/docker-compose
 dep/docker-compose:
 	@if [ -z "$(DOCKER_COMPOSE)" ]; then echo -e "$(RED)Docker Compose not found.$(RESET)" && exit 1; fi
+
+.PHONY: dep/ruff
+dep/ruff: dep/venv
+	@if ! $(UV) run ruff --version > /dev/null 2>&1; then \
+		echo -e "$(RED)Ruff not found. Please run 'make install' first.$(RESET)" && exit 1; \
+	fi
 
 #-- System
 
@@ -260,7 +271,7 @@ update: | dep/uv install  ## Update all project dependencies
 .PHONY: clean
 clean:  dep/python  ## Clean the project - removes all cache dirs and stamp files
 	@echo -e "$(YELLOW)\nCleaning the project...$(RESET)"
-	@find . -type d -name "__pycache__" | xargs rm -rf {};
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
 	@rm -rf $(STAMP_FILES) $(CACHE_DIRS) $(BUILD) $(EGG_INFO) $(DOCS_SITE) $(COVERAGE) || true
 	@echo -e "$(GREEN)Project cleaned.$(RESET)"
 
@@ -341,15 +352,15 @@ $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 #-- Check
 
 .PHONY: format
-format: $(INSTALL_STAMP)  ## Format the code
+format: dep/ruff $(INSTALL_STAMP)  ## Format the code
 	@echo -e "$(CYAN)\nFormatting the code...$(RESET)"
-	@ruff format $(PY_FILES) $(TEST_FILES)
+	@$(UV) run ruff format $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code formatted.$(RESET)"
 
 .PHONY: lint
-lint: $(INSTALL_STAMP)  ## Lint the code
+lint: dep/ruff $(INSTALL_STAMP)  ## Lint the code
 	@echo -e "$(CYAN)\nLinting the code...$(RESET)"
-	@ruff check $(PY_FILES) $(TEST_FILES)
+	@$(UV) run ruff check $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code linted.$(RESET)"
 
 .PHONY: precommit
@@ -389,23 +400,31 @@ staging: | dep/git
 	echo -e "  $(CYAN)Staging area empty:$(RESET) $$(cat $(STAGING_STAMP))"
 
 .PHONY: tag
-tag: | version staging  ## Tag a new release version (use ARGS="..." to specify the version)
+tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|major")
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		case "$(ARGS)" in \
-			"patch"|"minor"|"major"|"prepatch"|"preminor"|"premajor"|"prerelease"|"--next-phase") \
+			"patch"|"minor"|"major") \
 				echo -e "$(CYAN)\nCreating a new version...$(RESET)"; \
-				$(eval CURRENT_VERSION := $(shell grep -m1 'version = "[^"]*"' pyproject.toml | sed 's/.*version = "\([^"]*\)".*/\1/')) \
-                $(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | awk -F. \
-                    -v OFS=. \
-                    -v action="$(ARGS)" \
-                    '{ \
-                        major=$$1; minor=$$2; patch=$$3; \
-                        if (action=="major") {major++; minor=0; patch=0} \
-                        else if (action=="minor") {minor++; patch=0} \
-                        else if (action=="patch") {patch++} \
-                        print major,minor,patch \
-                    }')) \
+				if [ -z "$(GREP)" ] || [ -z "$(SED)" ] || [ -z "$(AWK)" ] || [ -z "$(SED_INPLACE)" ] || [ -z "$(UV)" ] || [ -z "$(GIT)" ]; then \
+					echo -e "$(RED)Error: Required tools (grep, sed, awk, uv, git) not found.$(RESET)"; \
+					exit 1; \
+				fi; \
+				$(eval CURRENT_VERSION := $(shell $(GREP) -m1 'version = "[^"]*"' pyproject.toml | $(SED) 's/.*version = "\([^"]*\)".*/\1/')) \
+				$(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | $(AWK) -F. \
+					-v OFS=. \
+					-v action="$(ARGS)" \
+					'{ \
+						major=$$1; minor=$$2; patch=$$3; \
+						if (action=="major") {major++; minor=0; patch=0} \
+						else if (action=="minor") {minor++; patch=0} \
+						else if (action=="patch") {patch++} \
+						print major,minor,patch \
+					}')) \
+				if [ -z "$(CURRENT_VERSION)" ] || [ -z "$(NEW_VERSION)" ]; then \
+					echo -e "$(RED)Error: Failed to compute version. Check pyproject.toml format.$(RESET)"; \
+					exit 1; \
+				fi; \
 				$(SED_INPLACE) 's/^version = ".*"/version = "$(NEW_VERSION)"/' pyproject.toml; \
 				$(UV) lock; \
 				$(GIT) add pyproject.toml uv.lock; \
@@ -416,7 +435,7 @@ tag: | version staging  ## Tag a new release version (use ARGS="..." to specify 
 				;; \
 			*) \
 				echo -e "$(RED)Invalid version argument.$(RESET)"; \
-				echo -e "$(RED)\nUsage: make tag ARGS=\"patch|minor|major|prepatch|preminor|premajor|prerelease|--next-phase\"$(RESET)"; \
+				echo -e "$(RED)\nUsage: make tag ARGS=\"patch|minor|major\"$(RESET)"; \
 				exit 1; \
 				;; \
 		esac; \
@@ -426,9 +445,17 @@ tag: | version staging  ## Tag a new release version (use ARGS="..." to specify 
 
 .PHONY: release
 release: | dep/git  ## Push the tagged version to origin - triggers the release and docker actions
+	@if [ -z "$(GREP)" ] || [ -z "$(AWK)" ]; then \
+		echo -e "$(RED)Error: Required tools (grep, awk) not found.$(RESET)"; \
+		exit 1; \
+	fi
 	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0))
 	@$(eval REMOTE_TAGS := $(shell $(GIT) ls-remote --tags origin | $(AWK) '{print $$2}'))
-	@if echo $(REMOTE_TAGS) | grep -q $(TAG); then \
+	@if [ -z "$(TAG)" ]; then \
+		echo -e "$(RED)Error: No tags found. Please create a tag first with 'make tag'.$(RESET)"; \
+		exit 1; \
+	fi
+	@if echo $(REMOTE_TAGS) | $(GREP) -q $(TAG); then \
 		echo -e "$(YELLOW)\nNothing to push: tag $(TAG) already exists on origin.$(RESET)"; \
 	else \
 		echo -e "$(CYAN)\nPushing new release $(TAG)...$(RESET)"; \
