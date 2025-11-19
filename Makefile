@@ -142,10 +142,8 @@ dep/git:
 .PHONY: dep/venv
 dep/venv: dep/uv
 	@if [ ! -d "$(VIRTUALENV_NAME)" ]; then \
-		echo -e "$(RED)Virtualenv not found.$(RESET)" && exit 1; \
-    elif [ ! "$$(which python)" = "$$PWD/$(VIRTUALENV_NAME)/bin/python" ]; then \
-        echo -e "$(RED)Virtualenv exists but is not activated.$(RESET)" && exit 1; \
-    fi
+		echo -e "$(RED)Virtualenv not found. Run 'make virtualenv' first.$(RESET)" && exit 1; \
+	fi
 
 .PHONY: dep/python
 dep/python:
