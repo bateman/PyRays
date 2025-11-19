@@ -210,6 +210,12 @@ virtualenv: | dep/uv  ## Check if virtualenv exists - create it if not
 	@echo -e "$(YELLOW)To activate manually, run: source $(VIRTUALENV_NAME)/bin/activate$(RESET)"
 	@echo -e "$(YELLOW)Note: Make targets use 'uv run' and don't require manual activation.$(RESET)"
 
+.PHONY: shell
+shell: dep/venv  ## Open an interactive shell in the virtual environment
+	@echo -e "$(CYAN)\nOpening shell in virtual environment...$(RESET)"
+	@echo -e "$(YELLOW)Type 'exit' to leave the shell.$(RESET)"
+	@bash --init-file <(echo "source $(VIRTUALENV_NAME)/bin/activate; PS1='(venv) \[\033[1;35m\]$(PROJECT_NAME)\[\033[0m\] \w\$$ '")
+
 .PHONY: uv
 uv: | dep/uv  ## Check if uv is installed
 	@echo -e "$(CYAN)\n$(shell $(UV) --version) available.$(RESET)"
@@ -269,6 +275,14 @@ $(PRODUCTION_STAMP): $(INSTALL_STAMP)
 	@$(UV) lock
 	@touch $(PRODUCTION_STAMP)
 	@echo -e "$(GREEN)Project installed for production.$(RESET)"
+
+.PHONY: install-hooks
+install-hooks: dep/venv $(PRECOMMIT_CONF)  ## Install git pre-commit hooks
+	@echo -e "$(CYAN)\nInstalling git pre-commit hooks...$(RESET)"
+	@$(UV) run pre-commit install
+	@$(UV) run pre-commit install --hook-type commit-msg
+	@echo -e "$(GREEN)Pre-commit hooks installed.$(RESET)"
+	@echo -e "$(YELLOW)Hooks will run automatically before commits.$(RESET)"
 
 .PHONY: update
 update: | dep/uv install  ## Update all project dependencies
@@ -366,6 +380,16 @@ $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 	@echo -e "$(GREEN)Dependencies exported.$(RESET)"
 	@touch $(DEPS_EXPORT_STAMP)
 
+.PHONY: deps-tree
+deps-tree: | dep/uv  ## Show the dependency tree
+	@echo -e "$(CYAN)\nShowing dependency tree...$(RESET)"
+	@$(UV) tree
+
+.PHONY: deps-outdated
+deps-outdated: dep/venv  ## Show outdated dependencies
+	@echo -e "$(CYAN)\nChecking for outdated dependencies...$(RESET)"
+	@$(UV) pip list --outdated
+
 #-- Check
 
 .PHONY: format
@@ -380,6 +404,22 @@ lint: $(INSTALL_STAMP)  ## Lint the code
 	@$(UV) run ruff check $(PY_FILES) $(TEST_FILES)
 	@echo -e "$(GREEN)Code linted.$(RESET)"
 
+.PHONY: format-check
+format-check: $(INSTALL_STAMP)  ## Check code formatting without modifying files
+	@echo -e "$(CYAN)\nChecking code formatting...$(RESET)"
+	@$(UV) run ruff format --check $(PY_FILES) $(TEST_FILES)
+	@echo -e "$(GREEN)Code formatting check completed.$(RESET)"
+
+.PHONY: type-check
+type-check: $(INSTALL_STAMP)  ## Run static type checking with mypy
+	@echo -e "$(CYAN)\nRunning type checks...$(RESET)"
+	@$(UV) run mypy $(PY_FILES)
+	@echo -e "$(GREEN)Type checking completed.$(RESET)"
+
+.PHONY: check
+check: format-check lint type-check  ## Run all checks without fixing (format-check, lint, type-check)
+	@echo -e "$(GREEN)\nAll checks passed!$(RESET)"
+
 .PHONY: precommit
 precommit: $(INSTALL_STAMP) $(PRECOMMIT_CONF)  ## Run all pre-commit checks
 	@echo -e "$(CYAN)\nRunning the pre-commit checks...$(RESET)"
@@ -387,6 +427,30 @@ precommit: $(INSTALL_STAMP) $(PRECOMMIT_CONF)  ## Run all pre-commit checks
 	@echo -e "$(GREEN)Pre-commit checks completed.$(RESET)"
 
 #-- Release
+
+.PHONY: show-version
+show-version:  ## Show current project version
+	@echo -e "$(CYAN)\nCurrent version:$(RESET) $(PROJECT_VERSION)"
+
+.PHONY: show-tags
+show-tags: | dep/git  ## Show all tags (local and remote)
+	@echo -e "$(CYAN)\nLocal tags:$(RESET)"
+	@$(GIT) tag -l | sort -V || echo -e "$(YELLOW)  No local tags found$(RESET)"
+	@echo -e "$(CYAN)Remote tags:$(RESET)"
+	@$(GIT) ls-remote --tags origin | $(AWK) -F'/' '{print $$NF}' | sort -V || echo -e "$(YELLOW)  No remote tags found$(RESET)"
+
+.PHONY: show-changelog
+show-changelog: | dep/git  ## Show changelog from git commits since last tag
+	@echo -e "$(CYAN)\nGenerating changelog...$(RESET)"
+	@$(eval LAST_TAG := $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null || echo ""))
+	@if [ -z "$(LAST_TAG)" ]; then \
+		echo -e "$(YELLOW)No tags found. Showing all commits...$(RESET)\n"; \
+		$(GIT) log --pretty=format:"- %s (%h)"; \
+	else \
+		echo -e "$(CYAN)Changes since $(LAST_TAG):$(RESET)\n"; \
+		$(GIT) log $(LAST_TAG)..HEAD --pretty=format:"- %s (%h)"; \
+	fi
+	@echo ""
 
 .PHONY: version
 version: | dep/git
@@ -496,6 +560,26 @@ docker-run: dep/docker $(DOCKER_BUILD_STAMP)  ## Run the Docker container
 	@echo -e "$(CYAN)\nRunning the Docker container...$(RESET)"
 	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) ARGS="$(ARGS)" $(DOCKER_COMPOSE) up
 	@echo -e "$(GREEN)Docker container executed.$(RESET)"
+
+.PHONY: docker-shell
+docker-shell: | dep/docker  ## Open shell in running Docker container
+	@echo -e "$(CYAN)\nOpening shell in Docker container...$(RESET)"
+	@if [ -z "$$($(DOCKER) ps -q -f name=$(DOCKER_CONTAINER_NAME))" ]; then \
+		echo -e "$(RED)Container $(DOCKER_CONTAINER_NAME) is not running.$(RESET)"; \
+		echo -e "$(YELLOW)Start it with 'make docker-run' first.$(RESET)"; \
+		exit 1; \
+	fi
+	@$(DOCKER) exec -it $(DOCKER_CONTAINER_NAME) /bin/bash || $(DOCKER) exec -it $(DOCKER_CONTAINER_NAME) /bin/sh
+
+.PHONY: docker-logs
+docker-logs: | dep/docker  ## Show Docker container logs (use ARGS="--follow" to stream logs)
+	@echo -e "$(CYAN)\nShowing Docker container logs...$(RESET)"
+	@if [ -z "$$($(DOCKER) ps -aq -f name=$(DOCKER_CONTAINER_NAME))" ]; then \
+		echo -e "$(RED)Container $(DOCKER_CONTAINER_NAME) does not exist.$(RESET)"; \
+		echo -e "$(YELLOW)Build and run it with 'make docker-all' first.$(RESET)"; \
+		exit 1; \
+	fi
+	@$(DOCKER) logs $(ARGS) $(DOCKER_CONTAINER_NAME)
 
 .PHONY: docker-all
 docker-all: docker-build docker-run  ## Build and run the Docker container
