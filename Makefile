@@ -388,6 +388,13 @@ precommit: $(INSTALL_STAMP) $(PRECOMMIT_CONF)  ## Run all pre-commit checks
 
 #-- Release
 
+.PHONY: show-tags
+show-tags: | dep/git  ## Show all tags (local and remote)
+	@echo -e "$(CYAN)\nLocal tags:$(RESET)"
+	@$(GIT) tag -l | sort -V || echo -e "$(YELLOW)  No local tags found$(RESET)"
+	@echo -e "$(CYAN)Remote tags:$(RESET)"
+	@$(GIT) ls-remote --tags origin | $(AWK) -F'/' '{print $$NF}' | sort -V || echo -e "$(YELLOW)  No remote tags found$(RESET)"
+
 .PHONY: version
 version: | dep/git
 	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0 2>/dev/null || echo "0.0.0"))
