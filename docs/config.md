@@ -1,5 +1,3 @@
 # Config
 
-
-
-::: pyrays.src.config.config
+::: pyrays.src.config.config.Config
