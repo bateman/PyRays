@@ -42,7 +42,7 @@ Project
   run                   Run the project
   test                  Run the tests
   build                 Build the project as a package
-  build-all             Build the project package and generate the documentation
+  build-all             Build the project package, Docker image, and generate the documentation
   publish               Publish the project to PyPI (use ARGS="<PyPI token>")
   publish-all           Publish the project package to PyPI and the documentation to GitHub Pages
   export-deps           Export the project's dependencies to requirements*.txt files
@@ -59,7 +59,7 @@ Release
   show-version          Show current project version
   show-tags             Show all tags (local and remote)
   show-changelog        Show changelog from git commits since last tag
-  tag                   Tag a new release version (use ARGS="patch|minor|major")
+  tag                   Tag a new release version (use ARGS="patch|minor|major|prepatch|preminor|premajor|prerelease")
   release               Push the tagged version to origin - triggers the release and docker actions
 Docker
   docker-build          Build the Docker image
@@ -130,7 +130,7 @@ This is a template repository, so first, create a new GitHub repository and choo
 > The `name` field in `pyproject.toml` will be converted to lowercase and whitespaces will be replaced by `_`. This value will be the name of your project module.
 
 > [!CAUTION]
-> The `Makefile.env` should specify at least the `PYTHON_VERSION=...`. Otherwise, the GitHub Actions will fail. Also, make sure that the Python version specified in `Makefile.env` (e.g., 3.12.1) satisfies the requirements in `pyproject.toml` file (e.g., python = "^3.12").
+> The `Makefile.env` should specify at least the `PYTHON_VERSION=...`. Otherwise, the GitHub Actions will fail. Also, make sure that the Python version specified in `Makefile.env` (e.g., 3.11.11) satisfies the requirements in `pyproject.toml` file (e.g., requires-python = ">=3.11").
 
 ## Development
 
@@ -179,14 +179,14 @@ Run `make update` to update all the dependencies using `uv`.
 ## Build
 
 Run `make build` to build the project as a Python package.
-The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `dist/`).
+The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `dist`).
 
 > [!TIP]
 > Run `make build-all` to build both the project's wheel and tarball, as well as the documentation site.
 
 ## Release
 
-* Run `make release ARGS="<semvertag>"` to bump the version of the project and write the new version back to `pyproject.toml`, where `<semvertag>` is one of the following rules: `patch`, `minor`, `major`, `prepatch`, `preminor`, `premajor`, `prerelease`.
+* Run `make tag ARGS="<semvertag>"` to bump the version of the project and write the new version back to `pyproject.toml`, where `<semvertag>` is one of the following rules: `patch`, `minor`, `major`, `prepatch`, `preminor`, `premajor`, `prerelease`.
 
   The table below illustrates the effect of these rules with concrete examples.
 
@@ -202,7 +202,7 @@ The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `
   | `prerelease` |   1.0.3a0  |  1.0.3a1  |
   | `prerelease` |   1.0.3b0  |  1.0.3b1  |
 
-* Run `make release ARGS="<semvertag>"` to:
+* Run `make release` to:
 1. Push the tagged version to the origin repository
 2. Trigger two GitHub Actions workflows:
    - `release.yml`: Creates and uploads a new release to GitHub
@@ -215,14 +215,15 @@ The `*.tar.gz` and `*.whl` will be placed in the `BUILD` directory (by default `
 
 ## GitHub Actions
 
-As shown in the table below, there are four GitHub Actions workflow. Take note on the event triggering the run and the Secrets needed for a successful execution.
+As shown in the table below, there are five GitHub Actions workflows. Take note on the event triggering the run and the Secrets needed for a successful execution.
 
-| **Action name** | **Purpose**                                 | **Runs on**                                            | **Secrets**                             |
-|:---------------:|---------------------------------------------|--------------------------------------------------------|-----------------------------------------|
-|  `release.yml`  | Release package to PyPI and GitHub 📦       | tag push                                               | -                                       |
-|   `docker.yml`  | Push image to DockerHub 🚀                  | tag push                                               | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` |
-|   `tests.yml`   | Run tests and upload coverage to Codecov 📊 | commit push on branches != `main`, manual              | `CODECOV_TOKEN`                         |
-|    `docs.yml`   | Upload documentation to GitHub Pages 📓     | commit push on `docs/**` path of `main` branch, manual | -                                       |
+| **Action name**        | **Purpose**                                 | **Runs on**                                            | **Secrets**                             |
+|:----------------------:|---------------------------------------------|--------------------------------------------------------|-----------------------------------------|
+|  `release.yml`         | Release package to PyPI and GitHub 📦       | tag push                                               | -                                       |
+|   `docker.yml`         | Push image to DockerHub 🚀                  | tag push, manual                                       | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` |
+|   `tests.yml`          | Run tests and upload coverage to Codecov 📊 | commit push on branches != `main`, manual              | `CODECOV_TOKEN`                         |
+|    `docs.yml`          | Upload documentation to GitHub Pages 📓     | commit push on `docs/**` path of `main` branch, tag push, manual | -                                       |
+| `testpypi-release.yml` | Manually publish package to TestPyPI 📦     | manual                                                 | -                                       |
 
 > [!CAUTION]
 > Follow this [guide](https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/#configuring-trusted-publishing) and configure PyPI’s trusted publishing implementation to connect to GitHub Actions CI/CD. Otherwise, the release workflow will fail.
@@ -247,7 +248,7 @@ To manually publish your package to PyPI, run `make publish`. If necessary, this
 ## Documentation
 
 * Run `make docs-build` to build the project documentation using `mkdocs`. The documentation will be generated from your project files' comments in docstring format, thanks to the `mkdocstrings` plugin.
-The documentation files will be stored in the `DOCS_SITE` directory (by default `site/`).
+The documentation files will be stored in the `DOCS_SITE` directory (by default `site`).
 * Run `make docs-serve` to browse the built site locally, at http://127.0.0.1:8000/your-github-name/your-project-name/
 * Run `make docs-publish` to publish the documentation site as GitHub pages. The content will be published to a separate branch, named `gh-pages`. Access the documentation online at https://your-github-name.github.io/your-project-name/
 
