@@ -58,7 +58,7 @@ plugins:
       handlers:
         python:
           options:
-            show_source: false
+            show_source: true
 
 nav:
   - Home: index.md
@@ -66,6 +66,7 @@ nav:
     - Module: module.md
     - Configuration: config.md
     - Logging: logging.md
+    - Project Info: info.md
   - Info:
     - About: about.md
     - License: license.md
