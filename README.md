@@ -263,6 +263,15 @@ The documentation files will be stored in the `DOCS_SITE` directory (by default 
 * To start the Docker container and run the application: `make docker-run`
 * To build and run: `make docker-all`
 
+> [!TIP]
+> You can override Docker variables directly from the command line without editing `Makefile.env`. For example:
+> ```bash
+> make docker-build DOCKER_IMAGE_TAG=dev
+> make docker-run DOCKER_IMAGE_TAG=v1.0.0
+> make docker-all DOCKER_IMAGE_NAME=myapp DOCKER_IMAGE_TAG=staging
+> ```
+> This is useful for CI/CD pipelines or when you need to quickly test different configurations.
+
 > [!NOTE]
 > Before building the container, you can edit `Makefile.env` and change the name of the image and or container (by default they will match the name of your project).
 
