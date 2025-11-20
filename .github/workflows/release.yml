@@ -83,23 +83,26 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
+        path: repo
         fetch-depth: 0
     - name: Generate Release Notes
       run: |
+        cd repo
         PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>/dev/null || echo "")
         if [ -z "$PREV_TAG" ]; then
-          echo "# Release ${{ github.ref_name }}" > release_notes.md
-          echo "" >> release_notes.md
-          echo "First release - all commits:" >> release_notes.md
-          echo "" >> release_notes.md
-          git log --pretty=format:"- %s (%h)" >> release_notes.md
+          echo "# Release ${{ github.ref_name }}" > ../release_notes.md
+          echo "" >> ../release_notes.md
+          echo "First release - all commits:" >> ../release_notes.md
+          echo "" >> ../release_notes.md
+          git log --pretty=format:"- %s (%h)" >> ../release_notes.md
         else
-          echo "# Release ${{ github.ref_name }}" > release_notes.md
-          echo "" >> release_notes.md
-          echo "Changes since $PREV_TAG:" >> release_notes.md
-          echo "" >> release_notes.md
-          git log $PREV_TAG..${{ github.ref_name }} --pretty=format:"- %s (%h)" >> release_notes.md
+          echo "# Release ${{ github.ref_name }}" > ../release_notes.md
+          echo "" >> ../release_notes.md
+          echo "Changes since $PREV_TAG:" >> ../release_notes.md
+          echo "" >> ../release_notes.md
+          git log $PREV_TAG..${{ github.ref_name }} --pretty=format:"- %s (%h)" >> ../release_notes.md
         fi
+        cd ..
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -112,4 +115,4 @@ jobs:
       # `dist/` contains the built packages, and the
       # sigstore-produced signatures and certificates.
       run: |
-        gh release upload '${{ github.ref_name }}' dist/*.tar.gz dist/*.whl dist/*.sigstore.json --repo '${{ github.repository }}'
+        gh release upload '${{ github.ref_name }}' dist/* --repo '${{ github.repository }}'
