@@ -114,6 +114,7 @@ This is a template repository, so first, create a new GitHub repository and choo
         PYTHON_VERSION=3.11.11
         DOCKER_CONTAINER_NAME=pyrays
         DOCKER_IMAGE_NAME=pyrays
+        DOCKER_IMAGE_TAG=latest
 
 6. To create the virtual environment, run `make virtualenv`. Note that this will also check for the requested Python version; if not available, it will ask you to use `uv` to install it.
 7. To complete the installation for development purposes, run `make install` -- this will install all development dependencies. Otherwise, for production purposes only, run `make production`.
@@ -261,6 +262,15 @@ The documentation files will be stored in the `DOCS_SITE` directory (by default 
 * To build the Docker container: `make docker-build`
 * To start the Docker container and run the application: `make docker-run`
 * To build and run: `make docker-all`
+
+> [!TIP]
+> You can override Docker variables directly from the command line without editing `Makefile.env`. For example:
+> ```bash
+> make docker-build DOCKER_IMAGE_TAG=dev
+> make docker-run DOCKER_IMAGE_TAG=v1.0.0
+> make docker-all DOCKER_IMAGE_NAME=myapp DOCKER_IMAGE_TAG=staging
+> ```
+> This is useful for CI/CD pipelines or when you need to quickly test different configurations.
 
 > [!NOTE]
 > Before building the container, you can edit `Makefile.env` and change the name of the image and or container (by default they will match the name of your project).

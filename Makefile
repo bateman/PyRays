@@ -40,6 +40,7 @@ PRECOMMIT_CONF ?= .pre-commit-config.yaml
 DOCKER_FILE ?= Dockerfile
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
 DOCKER_IMAGE_NAME ?= $(PROJECT_NAME)
+DOCKER_IMAGE_TAG ?= latest
 DOCKER_CONTAINER_NAME ?= $(PROJECT_NAME)
 
 # Stamp files
@@ -137,6 +138,7 @@ info:  ## Show development environment info
 		echo -e "  $(CYAN)Docker Compose:$(RESET) $(RED)not installed $(RESET)"; \
 	fi
 	@echo -e "  $(CYAN)Docker image name:$(RESET) $(DOCKER_IMAGE_NAME)"
+	@echo -e "  $(CYAN)Docker image tag:$(RESET) $(DOCKER_IMAGE_TAG)"
 	@echo -e "  $(CYAN)Docker container name:$(RESET) $(DOCKER_CONTAINER_NAME)"
 
 # Dependencies
@@ -551,14 +553,14 @@ release: | dep/git  ## Push the tagged version to origin - triggers the release 
 docker-build: dep/docker dep/docker-compose $(INSTALL_STAMP) $(DEPS_EXPORT_STAMP) $(DOCKER_BUILD_STAMP)  ## Build the Docker image
 $(DOCKER_BUILD_STAMP): $(DOCKER_FILE) $(DOCKER_COMPOSE_FILE)
 	@echo -e "$(CYAN)\nBuilding the Docker image...$(RESET)"
-	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) $(DOCKER_COMPOSE) build
+	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_IMAGE_TAG=$(DOCKER_IMAGE_TAG) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) $(DOCKER_COMPOSE) build
 	@echo -e "$(GREEN)Docker image built.$(RESET)"
 	@touch $(DOCKER_BUILD_STAMP)
 
 .PHONY: docker-run
 docker-run: dep/docker $(DOCKER_BUILD_STAMP)  ## Run the Docker container
 	@echo -e "$(CYAN)\nRunning the Docker container...$(RESET)"
-	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) ARGS="$(ARGS)" $(DOCKER_COMPOSE) up
+	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_IMAGE_TAG=$(DOCKER_IMAGE_TAG) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) ARGS="$(ARGS)" $(DOCKER_COMPOSE) up
 	@echo -e "$(GREEN)Docker container executed.$(RESET)"
 
 .PHONY: docker-shell
@@ -587,13 +589,13 @@ docker-all: docker-build docker-run  ## Build and run the Docker container
 .PHONY: docker-stop
 docker-stop: | dep/docker dep/docker-compose  ## Stop the Docker container
 	@echo -e "$(CYAN)\nStopping the Docker container...$(RESET)"
-	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) $(DOCKER_COMPOSE) down
+	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_IMAGE_TAG=$(DOCKER_IMAGE_TAG) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) $(DOCKER_COMPOSE) down
 	@echo -e "$(GREEN)Docker container stopped.$(RESET)"
 
 .PHONY: docker-remove
 docker-remove: | dep/docker dep/docker-compose  ## Remove the Docker image, container, and volumes
 	@echo -e "$(CYAN)\nRemoving the Docker image...$(RESET)"
-	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) $(DOCKER_COMPOSE) down -v --rmi all
+	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_IMAGE_TAG=$(DOCKER_IMAGE_TAG) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) $(DOCKER_COMPOSE) down -v --rmi all
 	@rm -f $(DOCKER_BUILD_STAMP)
 	@echo -e "$(GREEN)Docker image removed.$(RESET)"
 

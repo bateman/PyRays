@@ -1,15 +1,27 @@
+# Docker Compose file format version 3.8
 services:
   pyrays:
-    image: ${DOCKER_IMAGE_NAME}:latest
+    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG:-latest}
     command: ${ARGS}
     build:
       context: .
       dockerfile: Dockerfile
     container_name: ${DOCKER_CONTAINER_NAME}
     restart: 'no'
-    networks:
-      - app-network
 
-networks:
-  app-network:
-    driver: bridge
+    # Resource limits to prevent resource exhaustion
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    # Logging configuration to prevent unbounded log growth
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
