@@ -1,5 +1,5 @@
 # Base image - using stable Python version
-FROM python:3.12-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 # OCI standard labels
 LABEL org.opencontainers.image.title="PyRays"
