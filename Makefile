@@ -483,26 +483,63 @@ staging: | dep/git
 	echo -e "  $(CYAN)Staging area empty:$(RESET) $$(cat $(STAGING_STAMP))"
 
 .PHONY: tag
-tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|major")
+tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|major|prepatch|preminor|premajor|prerelease")
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		case "$(ARGS)" in \
-			"patch"|"minor"|"major") \
+			"patch"|"minor"|"major"|"prepatch"|"preminor"|"premajor"|"prerelease") \
 				echo -e "$(CYAN)\nCreating a new version...$(RESET)"; \
 				if [ -z "$(GREP)" ] || [ -z "$(SED)" ] || [ -z "$(AWK)" ] || [ -z "$(SED_INPLACE)" ] || [ -z "$(UV)" ] || [ -z "$(GIT)" ]; then \
 					echo -e "$(RED)Error: Required tools (grep, sed, awk, uv, git) not found.$(RESET)"; \
 					exit 1; \
 				fi; \
 				$(eval CURRENT_VERSION := $(shell $(GREP) -m1 'version = "[^"]*"' pyproject.toml | $(SED) 's/.*version = "\([^"]*\)".*/\1/')) \
-				$(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | $(AWK) -F. \
-					-v OFS=. \
+				$(eval NEW_VERSION := $(shell echo $(CURRENT_VERSION) | $(AWK) \
 					-v action="$(ARGS)" \
 					'{ \
-						major=$$1; minor=$$2; patch=$$3; \
-						if (action=="major") {major++; minor=0; patch=0} \
-						else if (action=="minor") {minor++; patch=0} \
-						else if (action=="patch") {patch++} \
-						print major,minor,patch \
+						version=$$0; \
+						prerelease_pattern="[a-z][0-9]+$$"; \
+						has_prerelease=match(version, prerelease_pattern); \
+						\
+						if (has_prerelease) { \
+							prerelease_str=substr(version, RSTART, RLENGTH); \
+							prerelease_type=substr(prerelease_str, 1, 1); \
+							prerelease_num=substr(prerelease_str, 2); \
+							base_version=substr(version, 1, RSTART-1); \
+							split(base_version, ver, "."); \
+						} else { \
+							split(version, ver, "."); \
+						} \
+						\
+						major=ver[1]; minor=ver[2]; patch=ver[3]; \
+						\
+						if (action=="major") { \
+							major++; minor=0; patch=0; \
+							print major"."minor"."patch; \
+						} else if (action=="minor") { \
+							minor++; patch=0; \
+							print major"."minor"."patch; \
+						} else if (action=="patch") { \
+							patch++; \
+							print major"."minor"."patch; \
+						} else if (action=="premajor") { \
+							major++; minor=0; patch=0; \
+							print major"."minor"."patch"a0"; \
+						} else if (action=="preminor") { \
+							minor++; patch=0; \
+							print major"."minor"."patch"a0"; \
+						} else if (action=="prepatch") { \
+							patch++; \
+							print major"."minor"."patch"a0"; \
+						} else if (action=="prerelease") { \
+							if (has_prerelease) { \
+								prerelease_num++; \
+								print base_version prerelease_type prerelease_num; \
+							} else { \
+								patch++; \
+								print major"."minor"."patch"a0"; \
+							} \
+						} \
 					}')) \
 				if [ -z "$(CURRENT_VERSION)" ] || [ -z "$(NEW_VERSION)" ]; then \
 					echo -e "$(RED)Error: Failed to compute version. Check pyproject.toml format.$(RESET)"; \
@@ -518,7 +555,7 @@ tag: | version staging  ## Tag a new release version (use ARGS="patch|minor|majo
 				;; \
 			*) \
 				echo -e "$(RED)Invalid version argument.$(RESET)"; \
-				echo -e "$(RED)\nUsage: make tag ARGS=\"patch|minor|major\"$(RESET)"; \
+				echo -e "$(RED)\nUsage: make tag ARGS=\"patch|minor|major|prepatch|preminor|premajor|prerelease\"$(RESET)"; \
 				exit 1; \
 				;; \
 		esac; \
