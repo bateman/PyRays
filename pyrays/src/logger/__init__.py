@@ -4,5 +4,7 @@ from pyrays.config import config
 
 from .logger import Logger
 
+__all__ = ["Logger", "logger"]
+
 logger = Logger()
 Logger.set_log_level(config.log_level)
