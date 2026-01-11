@@ -61,7 +61,7 @@ BUILD := dist
 DOCS := docs
 DOCS_SITE := site
 CACHE_DIRS := $(wildcard .*_cache)
-COVERAGE := .coverage $(wildcard coverage.*)
+COVERAGE := .coverage $(wildcard coverage.*) htmlcov
 EGG_INFO := $(PROJECT_NAME).egg-info
 
 # Files
