@@ -4,9 +4,8 @@ import argparse
 import random
 from typing import Optional, Tuple
 
-from rich.console import Console
-
 from pyrays.logger import logger
+from rich.console import Console
 
 
 class OneClass:
@@ -17,8 +16,7 @@ class OneClass:
 
     """
 
-    """An instance of rich console."""
-    console = None
+    console: Console  # An instance of rich console
 
     def __init__(self) -> None:  # noqa: D107
         logger.debug("Initializing OneClass.")
@@ -39,8 +37,6 @@ class OneClass:
                                    If this argument is not provided, a mid-grey color rgb(128,128,128) will be generated.
 
         """
-        console = Console()
-
         if color is None:
             r = random.randint(0, 255)  # noqa: S311
             g = random.randint(0, 255)  # noqa: S311
@@ -48,7 +44,7 @@ class OneClass:
             color = f"rgb({r},{g},{b})"
         text = text or "\nHello, world!"
 
-        console.print(text, style=color)
+        self.console.print(text, style=color)
 
 
 def run() -> None:
