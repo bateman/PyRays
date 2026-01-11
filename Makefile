@@ -308,6 +308,15 @@ clean:  dep/python  ## Clean the project - removes all cache dirs and stamp file
 	@rm -rf $(STAMP_FILES) $(CACHE_DIRS) $(BUILD) $(EGG_INFO) $(DOCS_SITE) $(COVERAGE) || true
 	@echo -e "$(GREEN)Project cleaned.$(RESET)"
 
+.PHONY: clean-pycache
+clean-pycache:  ## Remove Python cache files without affecting virtual environment
+	@echo -e "$(CYAN)\nRemoving Python cache files...$(RESET)"
+	@find . -type d -name "__pycache__" -not -path "./$(VIRTUALENV_NAME)/*" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name "*.pyc" -not -path "./$(VIRTUALENV_NAME)/*" -delete 2>/dev/null || true
+	@find . -type f -name "*.pyo" -not -path "./$(VIRTUALENV_NAME)/*" -delete 2>/dev/null || true
+	@find . -type d -name "*.egg-info" -not -path "./$(VIRTUALENV_NAME)/*" -exec rm -rf {} + 2>/dev/null || true
+	@echo -e "$(GREEN)Python cache files removed.$(RESET)"
+
 .PHONY: reset
 reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-initialize the project)
 	@echo -e "$(RED)\nAre you sure you want to proceed with the reset (this involves wiping also the virual environment)? [y/N]: $(RESET)"
@@ -335,6 +344,26 @@ run: $(INSTALL_STAMP)  ## Run the project
 test: $(INSTALL_STAMP)  ## Run the tests
 	@echo -e "$(CYAN)\nRunning the tests...$(RESET)"
 	@$(UV) run pytest --cov=$(SRC) $(TESTS) $(ARGS)
+
+.PHONY: coverage-html
+coverage-html: $(INSTALL_STAMP)  ## Generate and open HTML test coverage report
+	@echo -e "$(CYAN)\nGenerating HTML coverage report...$(RESET)"
+	@$(UV) run pytest --cov=$(SRC) --cov-report=html $(TESTS) $(ARGS)
+	@echo -e "$(GREEN)Coverage report generated in htmlcov/index.html$(RESET)"
+	@echo -e "$(CYAN)Opening coverage report in browser...$(RESET)"
+	@if command -v xdg-open > /dev/null 2>&1; then \
+		xdg-open htmlcov/index.html; \
+	elif command -v open > /dev/null 2>&1; then \
+		open htmlcov/index.html; \
+	else \
+		echo -e "$(YELLOW)Could not detect browser opener. Please open htmlcov/index.html manually.$(RESET)"; \
+	fi
+
+.PHONY: watch-test
+watch-test: $(INSTALL_STAMP)  ## Run tests continuously with pytest-watch (for TDD)
+	@echo -e "$(CYAN)\nStarting continuous test runner...$(RESET)"
+	@echo -e "$(YELLOW)Press Ctrl+C to stop watching.$(RESET)"
+	@$(UV) run ptw -- --cov=$(SRC) $(TESTS) $(ARGS)
 
 .PHONY: build
 build: dep/uv $(BUILD_STAMP)  ## Build the project as a package
@@ -421,6 +450,18 @@ type-check: $(INSTALL_STAMP)  ## Run static type checking with mypy
 .PHONY: check
 check: format-check lint type-check  ## Run all checks without fixing (format-check, lint, type-check)
 	@echo -e "$(GREEN)\nAll checks passed!$(RESET)"
+
+.PHONY: fix
+fix: $(INSTALL_STAMP)  ## Format code and fix lint issues automatically
+	@echo -e "$(CYAN)\nFormatting code...$(RESET)"
+	@$(UV) run ruff format $(PY_FILES) $(TEST_FILES)
+	@echo -e "$(CYAN)Fixing lint issues...$(RESET)"
+	@$(UV) run ruff check --fix $(PY_FILES) $(TEST_FILES)
+	@echo -e "$(GREEN)Code formatted and lint issues fixed.$(RESET)"
+
+.PHONY: ci
+ci: clean install check test  ## Run all CI checks locally (clean, install, check, test)
+	@echo -e "$(GREEN)\nAll CI checks passed! Ready to push.$(RESET)"
 
 .PHONY: precommit
 precommit: $(INSTALL_STAMP) $(PRECOMMIT_CONF)  ## Run all pre-commit checks

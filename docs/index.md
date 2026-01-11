@@ -38,9 +38,12 @@ Project
   install-hooks         Install git pre-commit hooks
   update                Update all project dependencies
   clean                 Clean the project - removes all cache dirs and stamp files
+  clean-pycache         Remove Python cache files without affecting virtual environment
   reset                 Cleans plus removes the virtual environment (use ARGS="hard" to re-initialize the project)
   run                   Run the project
   test                  Run the tests
+  coverage-html         Generate and open HTML test coverage report
+  watch-test            Run tests continuously with pytest-watch (for TDD)
   build                 Build the project as a package
   build-all             Build the project package and generate the documentation
   publish               Publish the project to PyPI (use ARGS="<PyPI token>")
@@ -54,6 +57,8 @@ Check
   format-check          Check code formatting without modifying files
   type-check            Run static type checking with mypy
   check                 Run all checks without fixing (format-check, lint, type-check)
+  fix                   Format code and fix lint issues automatically
+  ci                    Run all CI checks locally (clean, install, check, test)
   precommit             Run all pre-commit checks
 Release
   show-version          Show current project version
