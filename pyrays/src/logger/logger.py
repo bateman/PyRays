@@ -46,6 +46,7 @@ class Logger(object):
     """The logger class for logging messages with rich formatting."""
 
     _instance = None
+    logger: logging.Logger  # Type annotation for mypy
 
     def __new__(cls):
         """Create a new instance of the logger class."""
@@ -61,8 +62,7 @@ class Logger(object):
             message (str): The message to log.
 
         """
-        if self._instance is not None:
-            self._instance.logger.debug(Format.DEBUG.value + message + "[/]")
+        self.logger.debug(Format.DEBUG.value + message + "[/]")
 
     def info(self, message: str) -> None:
         """Log an info message with rich formatting.
@@ -71,8 +71,7 @@ class Logger(object):
             message (str): The message to log.
 
         """
-        if self._instance is not None:
-            self._instance.logger.info(Format.INFO.value + message + "[/]")
+        self.logger.info(Format.INFO.value + message + "[/]")
 
     def warn(self, message: str) -> None:
         """Log a warning message with rich formatting.
@@ -81,8 +80,7 @@ class Logger(object):
             message (str): The message to log.
 
         """
-        if self._instance is not None:
-            self._instance.logger.warning(Format.WARN.value + message + "[/]")
+        self.logger.warning(Format.WARN.value + message + "[/]")
 
     def error(self, message: str) -> None:
         """Log an error message with rich formatting.
@@ -91,8 +89,7 @@ class Logger(object):
             message (str): The message to log.
 
         """
-        if self._instance is not None:
-            self._instance.logger.error(Format.ERROR.value + message + "[/]")
+        self.logger.error(Format.ERROR.value + message + "[/]")
 
     def critical(self, message: str) -> None:
         """Log a critical message with rich formatting.
@@ -101,8 +98,7 @@ class Logger(object):
             message (str): The message to log.
 
         """
-        if self._instance is not None:
-            self._instance.logger.critical(Format.CRITICAL.value + message + "[/]")
+        self.logger.critical(Format.CRITICAL.value + message + "[/]")
 
     @staticmethod
     def set_log_level(log_level: str = "") -> None:
