@@ -1,12 +1,10 @@
 """The main module of your application package."""
 
 import argparse
-import random
 from typing import Optional, Tuple
 
-from rich.console import Console
-
 from pyrays.logger import logger
+from rich.console import Console
 
 
 class OneClass:
@@ -17,38 +15,36 @@ class OneClass:
 
     """
 
-    """An instance of rich console."""
-    console = None
+    console: Console  # An instance of rich console
 
     def __init__(self) -> None:  # noqa: D107
         logger.debug("Initializing OneClass.")
         self.console = Console()
 
+    _DEFAULT_COLOR = "rgb(128,128,128)"
+    _DEFAULT_TEXT = "\nHello, world!"
+
     def print(
         self,
-        text: Optional[str] = "\nHello, world!",
-        color: Optional[str] = f"rgb({128},{128},{128})",
+        text: Optional[str] = None,
+        color: Optional[str] = None,
     ) -> None:
-        """Print a message in a specified color or in a random color if no color is specified.
+        """Print a message in a specified color.
 
         Args:
             text (Optional[str]): The message to print. Defaults to "Hello, world!".
             color (Optional[str]): The color to print the message in.
                                    This should be a string specifying a color recognized by the `rich` library,
                                    or an RGB color in the format "rgb(r,g,b)" where r, g, and b are integers between 0 and 255.
-                                   If this argument is not provided, a mid-grey color rgb(128,128,128) will be generated.
+                                   If not provided, defaults to mid-grey rgb(128,128,128).
 
         """
-        console = Console()
-
+        if text is None:
+            text = self._DEFAULT_TEXT
         if color is None:
-            r = random.randint(0, 255)  # noqa: S311
-            g = random.randint(0, 255)  # noqa: S311
-            b = random.randint(0, 255)  # noqa: S311
-            color = f"rgb({r},{g},{b})"
-        text = text or "\nHello, world!"
+            color = self._DEFAULT_COLOR
 
-        console.print(text, style=color)
+        self.console.print(text, style=color)
 
 
 def run() -> None:

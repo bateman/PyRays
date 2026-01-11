@@ -1,40 +1,42 @@
 """The module is used to update the 'pyproject.toml' file with the provided command line arguments."""
 
 import argparse
+import os
 import sys
+from typing import Optional
 
 import tomlkit
+
+# Path to pyproject.toml relative to this script's location
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PYPROJECT_PATH = os.path.join(_SCRIPT_DIR, "pyproject.toml")
 
 
 def get_dict() -> dict | None:
     """Get the 'pyproject.toml' file as a dictionary."""
-    with open("pyproject.toml", "r") as file:
+    with open(_PYPROJECT_PATH, "r") as file:
         data = tomlkit.loads(file.read())
-        try:
-            return data
-        except KeyError:
-            return None
+        return data
 
 
 def update_toml(
-    name: str, version: str, description: str, repository: str, license: str
+    name: Optional[str],
+    version: Optional[str],
+    description: Optional[str],
+    repository: Optional[str],
+    license: Optional[str],
 ) -> None:
     """Update the 'pyproject.toml' file with the provided parameters.
 
     Args:
-    ----
-        name (str): The name of the project
-        version (str): The version of the project
-        description (str): A short description of the project
-        repository (str): The URL of the project's repository
-        license (str): The license of the project
-
-    Returns:
-    -------
-        None
+        name: The name of the project
+        version: The version of the project
+        description: A short description of the project
+        repository: The URL of the project's repository
+        license: The license of the project
 
     """
-    with open("pyproject.toml", "r") as file:
+    with open(_PYPROJECT_PATH, "r") as file:
         data = tomlkit.loads(file.read())
 
     if name:
@@ -48,7 +50,7 @@ def update_toml(
     if license:
         data["project"]["license"] = license
 
-    with open("pyproject.toml", "w") as file:
+    with open(_PYPROJECT_PATH, "w") as file:
         file.write(tomlkit.dumps(data))
 
 

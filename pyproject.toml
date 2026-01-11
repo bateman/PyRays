@@ -10,7 +10,6 @@ license = { text = "MIT" }
 requires-python = ">=3.11"
 
 dependencies = [
-    "pre-commit>=4.1.0",
     "pretty-errors>=1.2.25",
     "rich>=13.9.4",
     "tomlkit>=0.13.2",
@@ -78,4 +77,4 @@ docstring-code-line-length = 60
 max-doc-length = 88
 
 [tool.pytest.ini_options]
-addopts = [ "--cov-fail-under=5", "--cov-report=term-missing", ]
+addopts = [ "--cov-fail-under=50", "--cov-report=term-missing", ]

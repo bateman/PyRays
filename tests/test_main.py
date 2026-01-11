@@ -12,10 +12,10 @@ def test_print(mock_console):
     This test verifies that the print method of the OneClass class calls the print method of the Console class
     with the correct arguments.
     """
-    # Arrange
-    oc = OneClass()
+    # Arrange - set up mock BEFORE creating OneClass instance
     mock_console_instance = MagicMock()
     mock_console.return_value = mock_console_instance
+    oc = OneClass()
 
     # Act
     oc.print("Hello, world!", "red")
