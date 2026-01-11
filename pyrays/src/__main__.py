@@ -3,7 +3,7 @@
 It is responsible for running your project as a package.
 """
 
-from pyrays import main
+from pyrays.main import run
 
 if __name__ == "__main__":
-    main.run()
+    run()
