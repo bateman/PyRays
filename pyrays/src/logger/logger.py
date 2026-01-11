@@ -26,8 +26,7 @@ pretty_errors.configure(
 class Format(Enum):
     """The format class for the logger.
 
-    Attributes
-    ----------
+    Attributes:
         DEBUG (str): Grey
         INFO (str): Grey
         WARN (str): Yellow
@@ -59,7 +58,6 @@ class Logger(object):
         """Log a debug message with rich formatting.
 
         Args:
-        ----
             message (str): The message to log.
 
         """
@@ -70,7 +68,6 @@ class Logger(object):
         """Log an info message with rich formatting.
 
         Args:
-        ----
             message (str): The message to log.
 
         """
@@ -81,7 +78,6 @@ class Logger(object):
         """Log a warning message with rich formatting.
 
         Args:
-        ----
             message (str): The message to log.
 
         """
@@ -92,7 +88,6 @@ class Logger(object):
         """Log an error message with rich formatting.
 
         Args:
-        ----
             message (str): The message to log.
 
         """
@@ -103,7 +98,6 @@ class Logger(object):
         """Log a critical message with rich formatting.
 
         Args:
-        ----
             message (str): The message to log.
 
         """
