@@ -1,5 +1,5 @@
 # Base image - matches PYTHON_VERSION in Makefile.env
-FROM python:3.11-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 # OCI standard labels
 LABEL org.opencontainers.image.title="PyRays"
