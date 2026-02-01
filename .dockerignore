@@ -48,8 +48,6 @@ Makefile
 Makefile.env
 .env
 .pre-commit-config.yaml
-pyproject.toml
-uv.lock
 
 # Docker
 Dockerfile

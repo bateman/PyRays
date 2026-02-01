@@ -6,7 +6,7 @@ authors = [
     {name = "Fabio Calefato", email = "fcalefato@gmail.com"}
 ]
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.12"
 
 dependencies = [
@@ -47,7 +47,6 @@ pyrays = "pyrays.main:run"
 [tool.setuptools]
 packages = ["pyrays"]
 package-dir = {"pyrays" = "pyrays/src"}
-license-files = []
 
 [tool.mypy]
 ignore_missing_imports = true
