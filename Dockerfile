@@ -8,16 +8,24 @@ LABEL org.opencontainers.image.authors="Fabio Calefato <fcalefato@gmail.com>"
 LABEL org.opencontainers.image.license="MIT"
 LABEL org.opencontainers.image.source="https://github.com/bateman/PyRays"
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Copy project files for dependency installation (cache layer)
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv (no dev dependencies, no project yet)
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy application files
 COPY pyrays/src pyrays
+
+# Install the project itself
+RUN uv sync --frozen --no-dev
+
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
@@ -30,7 +38,7 @@ USER appuser
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import pyrays" || exit 1
+    CMD uv run python -c "import pyrays" || exit 1
 
 # Run start script
 ENTRYPOINT ["./entrypoint.sh"]

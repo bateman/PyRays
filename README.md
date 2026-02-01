@@ -104,7 +104,7 @@ This is a template repository, so first, create a new GitHub repository and choo
           Project repository: https://github.com/bateman/PyRays
           Project directory: /Users/fabio/Dev/git/PyRays
         Python:
-          Python version: 3.11.11
+          Python version: 3.12.9
           Virtualenv name: .venv
           uv version: uv 0.6.2 (6d3614eec 2025-02-19)
         Docker:
@@ -116,7 +116,7 @@ This is a template repository, so first, create a new GitHub repository and choo
 4. If any needed tools are missing, they will be marked as '*not installed*'. Install them and re-run `make info` to ensure the tools are now correctly installed and in your PATH.
 5. Update the project variables values by editing `pyproject.toml`. In addition, you can add any of the variables in the list below to a `Makefile.env` file to override the default values used in the  `Makefile`. You can check the configuration of each variable using `make info`.
 
-        PYTHON_VERSION=3.11.11
+        PYTHON_VERSION=3.12.9
         DOCKER_CONTAINER_NAME=pyrays
         DOCKER_IMAGE_NAME=pyrays
         DOCKER_IMAGE_TAG=latest
@@ -135,7 +135,7 @@ This is a template repository, so first, create a new GitHub repository and choo
 > The `name` field in `pyproject.toml` will be converted to lowercase and whitespaces will be replaced by `_`. This value will be the name of your project module.
 
 > [!CAUTION]
-> The `Makefile.env` should specify at least the `PYTHON_VERSION=...`. Otherwise, the GitHub Actions will fail. Also, make sure that the Python version specified in `Makefile.env` (e.g., 3.11.11) satisfies the requirements in `pyproject.toml` file (e.g., requires-python = ">=3.11").
+> The `Makefile.env` should specify at least the `PYTHON_VERSION=...`. Otherwise, the GitHub Actions will fail. Also, make sure that the Python version specified in `Makefile.env` (e.g., 3.12.9) satisfies the requirements in `pyproject.toml` file (e.g., requires-python = ">=3.12").
 
 ## Development
 

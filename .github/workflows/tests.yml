@@ -17,18 +17,18 @@ jobs:
         id: get-python-version
         run: |
             echo "PYTHON_VERSION=$(grep 'PYTHON_VERSION' Makefile.env | sed 's/PYTHON_VERSION=//')" >> $GITHUB_ENV
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-      - name: Setup virtualenv
-        run: make virtualenv
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
       - name: Install dependencies
-        run: make install
+        run: uv sync --frozen --extra dev --extra test
       - name: Run tests
-        run: make test ARGS="--cov-report=json"
+        run: uv run pytest --cov=pyrays --cov-report=json tests/
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:

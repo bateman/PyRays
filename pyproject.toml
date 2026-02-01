@@ -1,6 +1,6 @@
 [project]
 name = "PyRays"
-version = "0.2.3"
+version = "0.2.5"
 description = "A GitHub template for Python projects using uv"
 authors = [
     {name = "Fabio Calefato", email = "fcalefato@gmail.com"}
@@ -79,3 +79,6 @@ max-doc-length = 88
 
 [tool.pytest.ini_options]
 addopts = [ "--cov-fail-under=50", "--cov-report=term-missing", ]
+
+[tool.uv]
+managed = true
