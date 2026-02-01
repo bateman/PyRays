@@ -41,9 +41,6 @@ Project
   clean-pycache         Remove Python cache files without affecting virtual environment
   reset                 Cleans plus removes the virtual environment (use ARGS="hard" to re-initialize the project)
   run                   Run the project
-  test                  Run the tests
-  coverage-html         Generate and open HTML test coverage report
-  watch-test            Run tests continuously with pytest-watch (for TDD)
   build                 Build the project as a package
   build-all             Build the project package, Docker image, and generate the documentation
   publish               Publish the project to PyPI (use ARGS="<PyPI token>")
@@ -51,7 +48,10 @@ Project
   export-deps           Export the project's dependencies to requirements*.txt files
   deps-tree             Show the dependency tree
   deps-outdated         Show outdated dependencies
-Check
+Quality Assurance
+  test                  Run the tests
+  coverage              Generate and open HTML test coverage report
+  watch-test            Run tests continuously with pytest-watch (for TDD)
   format                Format the code
   lint                  Lint the code
   format-check          Check code formatting without modifying files
