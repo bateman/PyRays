@@ -338,31 +338,6 @@ reset:  ## Cleans plus removes the virtual environment (use ARGS="hard" to re-in
 run: $(INSTALL_STAMP)  ## Run the project
 	@$(UV) run python -m $(PROJECT_NAME) $(ARGS)
 
-.PHONY: test
-test: $(INSTALL_STAMP)  ## Run the tests
-	@echo -e "$(CYAN)\nRunning the tests...$(RESET)"
-	@$(UV) run pytest --cov=$(SRC) $(TESTS) $(ARGS)
-
-.PHONY: coverage-html
-coverage-html: $(INSTALL_STAMP)  ## Generate and open HTML test coverage report
-	@echo -e "$(CYAN)\nGenerating HTML coverage report...$(RESET)"
-	@$(UV) run pytest --cov=$(SRC) --cov-report=html $(TESTS) $(ARGS)
-	@echo -e "$(GREEN)Coverage report generated in htmlcov/index.html$(RESET)"
-	@echo -e "$(CYAN)Opening coverage report in browser...$(RESET)"
-	@if command -v xdg-open > /dev/null 2>&1; then \
-		xdg-open htmlcov/index.html; \
-	elif command -v open > /dev/null 2>&1; then \
-		open htmlcov/index.html; \
-	else \
-		echo -e "$(YELLOW)Could not detect browser opener. Please open htmlcov/index.html manually.$(RESET)"; \
-	fi
-
-.PHONY: watch-test
-watch-test: $(INSTALL_STAMP)  ## Run tests continuously with pytest-watch (for TDD)
-	@echo -e "$(CYAN)\nStarting continuous test runner...$(RESET)"
-	@echo -e "$(YELLOW)Press Ctrl+C to stop watching.$(RESET)"
-	@$(UV) run ptw -- --cov=$(SRC) $(TESTS) $(ARGS)
-
 .PHONY: build
 build: dep/uv $(BUILD_STAMP)  ## Build the project as a package
 $(BUILD_STAMP): pyproject.toml Makefile $(PY_FILES)
@@ -419,7 +394,32 @@ deps-outdated: dep/venv  ## Show outdated dependencies
 	@echo -e "$(CYAN)\nChecking for outdated dependencies...$(RESET)"
 	@$(UV) pip list --outdated
 
-#-- Check
+#-- Quality Assurance
+
+.PHONY: test
+test: $(INSTALL_STAMP)  ## Run the tests
+	@echo -e "$(CYAN)\nRunning the tests...$(RESET)"
+	@$(UV) run pytest --cov=$(SRC) $(TESTS) $(ARGS)
+
+.PHONY: coverage
+coverage: $(INSTALL_STAMP)  ## Generate and open HTML test coverage report
+	@echo -e "$(CYAN)\nGenerating HTML coverage report...$(RESET)"
+	@$(UV) run pytest --cov=$(SRC) --cov-report=html $(TESTS) $(ARGS)
+	@echo -e "$(GREEN)Coverage report generated in htmlcov/index.html$(RESET)"
+	@echo -e "$(CYAN)Opening coverage report in browser...$(RESET)"
+	@if command -v xdg-open > /dev/null 2>&1; then \
+		xdg-open htmlcov/index.html; \
+	elif command -v open > /dev/null 2>&1; then \
+		open htmlcov/index.html; \
+	else \
+		echo -e "$(YELLOW)Could not detect browser opener. Please open htmlcov/index.html manually.$(RESET)"; \
+	fi
+
+.PHONY: watch-test
+watch-test: $(INSTALL_STAMP)  ## Run tests continuously with pytest-watch (for TDD)
+	@echo -e "$(CYAN)\nStarting continuous test runner...$(RESET)"
+	@echo -e "$(YELLOW)Press Ctrl+C to stop watching.$(RESET)"
+	@$(UV) run ptw -- --cov=$(SRC) $(TESTS) $(ARGS)
 
 .PHONY: format
 format: $(INSTALL_STAMP)  ## Format the code
