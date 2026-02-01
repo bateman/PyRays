@@ -236,7 +236,6 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 	@echo -e "$(CYAN)\nInstalling project $(PROJECT_NAME)...$(RESET)"
 	@mkdir -p $(SRC) $(TESTS) $(DOCS) $(BUILD) || true
 	@$(UV) sync --extra dev --extra test --extra docs
-	@$(UV) lock
 	@$(UV) run pre-commit install
 	@if [ ! -f $(PROJECT_INIT) ] && [ "$(PROJECT_NAME)" != "pyrays" ]; then \
 		echo -e "$(CYAN)Updating project $(PROJECT_NAME) information...$(RESET)"; \
@@ -273,8 +272,7 @@ $(INSTALL_STAMP): pyproject.toml .pre-commit-config.yaml
 production: dep/venv $(PRODUCTION_STAMP)  ## Install the project for production
 $(PRODUCTION_STAMP): $(INSTALL_STAMP)
 	@echo -e "$(CYAN)\nInstall project for production...$(RESET)"
-	@$(UV) sync
-	@$(UV) lock
+	@$(UV) sync --frozen
 	@touch $(PRODUCTION_STAMP)
 	@echo -e "$(GREEN)Project installed for production.$(RESET)"
 
@@ -376,9 +374,9 @@ publish-all: publish docs-publish  ## Publish the project package to PyPI and th
 export-deps: dep/uv $(DEPS_EXPORT_STAMP)  ## Export the project's dependencies to requirements*.txt files
 $(DEPS_EXPORT_STAMP): pyproject.toml uv.lock
 	@echo -e "$(CYAN)\nExporting the project dependencies...$(RESET)"
-	@$(UV) pip compile pyproject.toml -o requirements.txt
-	@$(UV) pip compile pyproject.toml -o requirements-dev.txt --extra test --extra dev
-	@$(UV) pip compile pyproject.toml -o requirements-docs.txt --extra docs
+	@$(UV) export --no-hashes --no-dev -o requirements.txt
+	@$(UV) export --no-hashes --extra test --extra dev -o requirements-dev.txt
+	@$(UV) export --no-hashes --extra docs -o requirements-docs.txt
 	@echo -e "$(GREEN)Dependencies exported.$(RESET)"
 	@touch $(DEPS_EXPORT_STAMP)
 
@@ -587,7 +585,7 @@ release: | dep/git  ## Push the tagged version to origin - triggers the release 
 #-- Docker
 
 .PHONY: docker-build
-docker-build: dep/docker dep/docker-compose $(INSTALL_STAMP) $(DEPS_EXPORT_STAMP) $(DOCKER_BUILD_STAMP)  ## Build the Docker image
+docker-build: dep/docker dep/docker-compose $(INSTALL_STAMP) $(DOCKER_BUILD_STAMP)  ## Build the Docker image
 $(DOCKER_BUILD_STAMP): $(DOCKER_FILE) $(DOCKER_COMPOSE_FILE)
 	@echo -e "$(CYAN)\nBuilding the Docker image...$(RESET)"
 	@DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) DOCKER_IMAGE_TAG=$(DOCKER_IMAGE_TAG) DOCKER_CONTAINER_NAME=$(DOCKER_CONTAINER_NAME) $(DOCKER_COMPOSE) build

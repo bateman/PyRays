@@ -4,9 +4,8 @@ import argparse
 import random
 from typing import Optional, Tuple
 
-from rich.console import Console
-
 from pyrays.logger import logger
+from rich.console import Console
 
 
 class OneClass:
