@@ -200,10 +200,9 @@ virtualenv: | dep/uv  ## Check if virtualenv exists - create it if not
 		echo -e "$(YELLOW)Python version $$PYTHON_MAJOR_MINOR not found, installing $(PYTHON_VERSION)...$(RESET)"; \
 		$(UV) python install $(PYTHON_VERSION) || exit 1; \
 		echo -e "$(GREEN)Python version $(PYTHON_VERSION) installed.$(RESET)"; \
-	fi
-	@if ! ls $(VIRTUALENV_NAME) > /dev/null 2>&1 ; then \
+	fi; \
+	if ! ls $(VIRTUALENV_NAME) > /dev/null 2>&1 ; then \
 		echo -e "$(YELLOW)Local virtualenv not found. Creating it...$(RESET)"; \
-		PYTHON_MAJOR_MINOR=$$(echo $(PYTHON_VERSION) | $(AWK) -F. '{print $$1"."$$2}'); \
 		$(UV) venv --python $$PYTHON_MAJOR_MINOR || exit 1; \
 		echo -e "$(GREEN)Virtualenv created at $(VIRTUALENV_NAME).$(RESET)"; \
 	else \
@@ -309,10 +308,8 @@ clean:  dep/python  ## Clean the project - removes all cache dirs and stamp file
 .PHONY: clean-pycache
 clean-pycache:  ## Remove Python cache files without affecting virtual environment
 	@echo -e "$(CYAN)\nRemoving Python cache files...$(RESET)"
-	@find . -type d -name "__pycache__" -not -path "./$(VIRTUALENV_NAME)/*" -exec rm -rf {} + 2>/dev/null || true
-	@find . -type f -name "*.pyc" -not -path "./$(VIRTUALENV_NAME)/*" -delete 2>/dev/null || true
-	@find . -type f -name "*.pyo" -not -path "./$(VIRTUALENV_NAME)/*" -delete 2>/dev/null || true
-	@find . -type d -name "*.egg-info" -not -path "./$(VIRTUALENV_NAME)/*" -exec rm -rf {} + 2>/dev/null || true
+	@find . \( -type d -name "__pycache__" -o -type d -name "*.egg-info" \) -not -path "./$(VIRTUALENV_NAME)/*" -exec rm -rf {} + 2>/dev/null || true
+	@find . \( -name "*.pyc" -o -name "*.pyo" \) -type f -not -path "./$(VIRTUALENV_NAME)/*" -delete 2>/dev/null || true
 	@echo -e "$(GREEN)Python cache files removed.$(RESET)"
 
 .PHONY: reset
@@ -361,15 +358,8 @@ publish: dep/uv $(BUILD_STAMP)  ## Publish the project to PyPI (use ARGS="<PyPI 
 		fi; \
 	fi
 	@echo -e "$(CYAN)\nPublishing the project to PyPI...$(RESET)"
-	@export UV_PUBLISH_USERNAME=__token__
-	@export UV_PUBLISH_PASSWORD=$(ARGS)
-	$(UV) publish $(BUILD)/*
-	@if [ $$? -eq 0 ]; then \
-		echo -e "$(GREEN)Project published.$(RESET)"; \
-	else \
-		echo -e "$(RED)Failed to publish to PyPI.$(RESET)"; \
-		exit 1; \
-	fi
+	@UV_PUBLISH_USERNAME=__token__ UV_PUBLISH_PASSWORD=$(ARGS) $(UV) publish $(BUILD)/*
+	@echo -e "$(GREEN)Project published.$(RESET)"
 
 .PHONY: publish-all
 publish-all: publish docs-publish  ## Publish the project package to PyPI and the documentation to GitHub Pages
